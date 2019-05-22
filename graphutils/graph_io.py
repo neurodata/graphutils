@@ -8,14 +8,8 @@ from typing import List
 
 import networkx as nx
 import numpy as np
-from graspy.utils import pass_to_ranks
-from graspy.utils import import_edgelist as PTR
-
-# TODO : functionality to turn multiple graphs into a single X matrix.
-# TODO : functionality for getting output vector
-# TODO : functionalitiy for pulling in graphs from directories
-# TODO : Class for returning stuff from filepaths
-# TODO : Class for manipulating graphs once they're created
+from graspy.utils import pass_to_ranks as PTR
+from graspy.utils import import_edgelist
 
 #%%
 class NdmgDirectory:
@@ -34,7 +28,6 @@ class NdmgDirectory:
         TODO
     names : 
         TODO
-    
     """
 
     def __init__(self, directory):
@@ -54,6 +47,8 @@ class NdmgDirectory:
         From a directory containing edgelist files, 
         return a list of edgelist files, 
         sorted alphabetically.
+
+        This property is ground truth for how the n's should be sorted.
         
         Parameters
         ----------
@@ -78,42 +73,56 @@ class NdmgDirectory:
     @property
     def graphs(self):
         """
-        List of numpy arrays,
+        Returns volumetric numpy array, shape (n, v, v),
         accounting for isolate nodes by unioning the vertices of all component edgelists,
         sorted in the same order as `self.files`.
         """
         # TODO : test to make sure sort order is the same as `self.files`
-        return import_edgelist(self.files)
+        list_of_arrays = import_edgelist(self.files)
+        return np.array(list_of_arrays)
 
     @property
     def X(self):
-        # TODO : this will be a single matrix,
-        #        created by vectorizing each array in `self.graphs`,
-        #        and then appending that array as a row to X.
+        """
+        this will be a single matrix,
+        created by vectorizing each array in `self.graphs`,
+        and then appending that array as a row to X.
+        """
         # TODO : test to make sure order of rows matches order of `self.files`.
-        # TODO : maybe rebuild this functionality
-        return np.stack(list(map(np.ravel, self.graphs)), axis=0)
+        # TODO : test to make sure order within rows matches order within arrays of `self.files`.
+        n, v1, v2 = np.shape(self.graphs)
+        return np.reshape(self.graphs, (n, v1 * v2))
 
     @property
     def Y(self):
-        # TODO : this will be a list of subject ids,
+        # TODO : this will be a numpy array of subject ids,
         #        sorted the same way as `self.files`.
+        #        use regex to do this.
+        pattern = r"(?<=sub-)(\w*)(?=_ses)"
         pass
 
-    def _pass_to_ranks(self, graph, method="simple-nonzero"):
+    def _pass_to_ranks(self, all=False, method="simple-nonzero"):
         # Just to have this as a utility method
-        return PTR(graph, method)
+        if all:
+            # TODO : return `self.graphs` with pass_to_ranks called on every n in it.
+            pass
+        else:
+            # TODO : return `self.X` with pass_to_ranks called on it.
+            pass
 
     def save_X_and_Y(self, output_directory):
         # TODO : this method will save `X` and `Y` as csvs into `output_directory`.
-        pass
+        np.savetxt(f"{output_directory}_X.csv", self.X, fmt="%f", delimiter=",")
+        np.savetxt(f"{output_directory}_Y.csv", self.Y, fmt="%s")
 
 
 f = NdmgDirectory(
     "/Users/alex/Dropbox/NeuroData/ndmg-paper/data/graphs/native_graphs_NKI"
 )
-# f = NdmgDirectory(5)
-np.shape(f.X)
+f.files
+f.graphs
+f.X
+f.Y
 #%%
 
 # ---------- Depracated code below ---------- #
