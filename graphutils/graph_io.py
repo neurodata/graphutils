@@ -9,6 +9,7 @@ from typing import List
 import networkx as nx
 import numpy as np
 from graspy.utils import pass_to_ranks
+from graspy.utils import import_edgelist as PTR
 
 # TODO : functionality to turn multiple graphs into a single X matrix.
 # TODO : functionality for getting output vector
@@ -19,37 +20,92 @@ from graspy.utils import pass_to_ranks
 #%%
 class NdmgDirectory:
     """Class that contains utility methods for use on a `ndmg` output directory.
-       Contains derived properties
+       Contains derived properties, and useful methods.
 
-    
     Attributes
     ----------
-    bla : thing
-        description
+    directory :
+        TODO
+    files : 
+        TODO
+    graphs : 
+        TODO
+    X : 
+        TODO
+    names : 
+        TODO
+    
     """
 
     def __init__(self, directory):
-        if isinstance(directory, (str, Path)):
-            self.dir = Path(directory)
-        else:
+        if not isinstance(directory, (str, Path)):
             # TODO : {type(directory)} isn't returning output in `message`
             message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
             raise TypeError(message)
+        else:
+            self.dir = Path(directory)
 
     def __repr__(self):
         return str(self.dir)
 
     @property
     def files(self):
-        """ List of edgelist files. """
+        """
+        From a directory containing edgelist files, 
+        return a list of edgelist files, 
+        sorted alphabetically.
+        
+        Parameters
+        ----------
+        path : directory of edgelist files.
+        
+        Returns
+        -------
+        Sorted list of Paths to files in `path`.
+        """
+        # TODO : check if all files are edgelists with the correct stuff in them,
+        #        and if they are not,
+        #        raise an exception
         correct_suffixes = [".ssv", ".csv"]
-        return [
-            filepath
-            for filepath in self.dir.iterdir()
-            if filepath.suffix in correct_suffixes
-        ]
+        return sorted(
+            [
+                filepath
+                for filepath in self.dir.iterdir()
+                if filepath.suffix in correct_suffixes
+            ]
+        )
 
-    def return_sorted_graph():
+    @property
+    def graphs(self):
+        """
+        List of numpy arrays,
+        accounting for isolate nodes by unioning the vertices of all component edgelists,
+        sorted in the same order as `self.files`.
+        """
+        # TODO : test to make sure sort order is the same as `self.files`
+        return import_edgelist(self.files)
+
+    @property
+    def X(self):
+        # TODO : this will be a single matrix,
+        #        created by vectorizing each array in `self.graphs`,
+        #        and then appending that array as a row to X.
+        # TODO : test to make sure order of rows matches order of `self.files`.
+        # TODO : maybe rebuild this functionality
+        return np.stack(list(map(np.ravel, self.graphs)), axis=0)
+
+    @property
+    def Y(self):
+        # TODO : this will be a list of subject ids,
+        #        sorted the same way as `self.files`.
+        pass
+
+    def _pass_to_ranks(self, graph, method="simple-nonzero"):
+        # Just to have this as a utility method
+        return PTR(graph, method)
+
+    def save_X_and_Y(self, output_directory):
+        # TODO : this method will save `X` and `Y` as csvs into `output_directory`.
         pass
 
 
@@ -57,8 +113,12 @@ f = NdmgDirectory(
     "/Users/alex/Dropbox/NeuroData/ndmg-paper/data/graphs/native_graphs_NKI"
 )
 # f = NdmgDirectory(5)
-f.files
+np.shape(f.X)
 #%%
+
+# ---------- Depracated code below ---------- #
+
+
 def return_sorted_graph(edgelist: str, n_nodes: int, delimiter=" ", nodetype=int):
     """From a graph file with n_nodes, return a sorted adjacency matrix.
 
