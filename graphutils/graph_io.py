@@ -17,6 +17,48 @@ from graspy.utils import pass_to_ranks
 # TODO : Class for manipulating graphs once they're created
 
 #%%
+class NdmgDirectory:
+    """Class that contains utility methods for use on a `ndmg` output directory.
+       Contains derived properties
+
+    
+    Attributes
+    ----------
+    bla : thing
+        description
+    """
+
+    def __init__(self, directory):
+        if isinstance(directory, (str, Path)):
+            self.dir = Path(directory)
+        else:
+            # TODO : {type(directory)} isn't returning output in `message`
+            message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
+            raise TypeError(message)
+
+    def __repr__(self):
+        return str(self.dir)
+
+    @property
+    def files(self):
+        """ List of edgelist files. """
+        correct_suffixes = [".ssv", ".csv"]
+        return [
+            filepath
+            for filepath in self.dir.iterdir()
+            if filepath.suffix in correct_suffixes
+        ]
+
+    def return_sorted_graph():
+        pass
+
+
+f = NdmgDirectory(
+    "/Users/alex/Dropbox/NeuroData/ndmg-paper/data/graphs/native_graphs_NKI"
+)
+# f = NdmgDirectory(5)
+f.files
+#%%
 def return_sorted_graph(edgelist: str, n_nodes: int, delimiter=" ", nodetype=int):
     """From a graph file with n_nodes, return a sorted adjacency matrix.
 
