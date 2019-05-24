@@ -8,6 +8,7 @@ from typing import List
 
 import networkx as nx
 import numpy as np
+from scipy.stats import rankdata
 from graspy.utils import pass_to_ranks as PTR
 from graspy.utils import import_edgelist
 
@@ -37,6 +38,7 @@ class NdmgDirectory:
             raise TypeError(message)
         else:
             self.dir = Path(directory)
+            self.X = self.X()
 
     def __repr__(self):
         return str(self.dir)
@@ -82,7 +84,15 @@ class NdmgDirectory:
         return np.array(list_of_arrays)
 
     @property
-    def X(self):
+    def Y(self):
+        # TODO : this will be a numpy array of subject ids,
+        #        sorted the same way as `self.files`.
+        #        use regex to do this.
+        pattern = r"(?<=sub-)(\w*)(?=_ses)"
+        names = [re.findall(pattern, str(edgelist))[0] for edgelist in self.files]
+        return np.array(names)
+
+    def _X(self, graphs=None, PTR=False):
         """
         this will be a single matrix,
         created by vectorizing each array in `self.graphs`,
@@ -90,25 +100,27 @@ class NdmgDirectory:
         """
         # TODO : test to make sure order of rows matches order of `self.files`.
         # TODO : test to make sure order within rows matches order within arrays of `self.files`.
-        n, v1, v2 = np.shape(self.graphs)
-        return np.reshape(self.graphs, (n, v1 * v2))
-
-    @property
-    def Y(self):
-        # TODO : this will be a numpy array of subject ids,
-        #        sorted the same way as `self.files`.
-        #        use regex to do this.
-        pattern = r"(?<=sub-)(\w*)(?=_ses)"
-        pass
-
-    def _pass_to_ranks(self, all=False, method="simple-nonzero"):
-        # Just to have this as a utility method
-        if all:
-            # TODO : return `self.graphs` with pass_to_ranks called on every n in it.
-            pass
+        if graphs is None:
+            graphs = self.graphs
+        if graphs.ndim == 3:
+            if PTR:
+                graphs = self._pass_to_ranks(graphs=graphs)
+            n, v1, v2 = np.shape(graphs)
+            return np.reshape(graphs, (n, v1 * v2))
         else:
-            # TODO : return `self.X` with pass_to_ranks called on it.
-            pass
+            raise ValueError("Dimensionality of input must be 3.")
+
+    def _pass_to_ranks(self, method="simple-nonzero", graphs=None):
+        # Just to have this as a utility method
+        if graphs is None:
+            graphs = self.graphs
+        graphs = self.graphs.copy()
+        non_zeros = graphs[graphs != 0]
+        rank = rankdata(non_zeros)
+        normalizer = rank.shape[0]
+        rank = rank / (normalizer + 1)
+        graphs[graphs != 0] = rank
+        return graphs
 
     def save_X_and_Y(self, output_directory):
         # TODO : this method will save `X` and `Y` as csvs into `output_directory`.
@@ -119,10 +131,7 @@ class NdmgDirectory:
 f = NdmgDirectory(
     "/Users/alex/Dropbox/NeuroData/ndmg-paper/data/graphs/native_graphs_NKI"
 )
-f.files
-f.graphs
-f.X
-f.Y
+f.X(PTR=True)
 #%%
 
 # ---------- Depracated code below ---------- #
