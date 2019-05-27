@@ -9,6 +9,7 @@ from graphutils.graph_io import NdmgDirectory
 
 
 DATAPATH = "/Users/alex/Dropbox/NeuroData/graphutils/tests/test_data"
+# TODO : make sure pass_to_ranks does what I think it does
 
 
 @pytest.fixture
@@ -31,12 +32,12 @@ class TestNdmgDirectory:
     def test_dir(self, basedir):
         assert isinstance(basedir, Path)
 
-    def test_has_attributes(self, ND):
+    def test_object_has_attributes(self, ND):
         assert all(
             hasattr(ND, attr) for attr in ["dir", "name", "files", "graphs", "X", "Y"]
         )
 
-    def test_has_data(self, ND):
+    def test_files_has_data(self, ND):
         # check if there are files
         assert len(ND.files) != 0, f"{dir(ND)}"
 
@@ -46,24 +47,16 @@ class TestNdmgDirectory:
             array = np.genfromtxt(str(filename), delimiter=" ")
             assert array.shape[1] == 3
 
+    def test_ordering(self, ND):
+        # TODO : tests to make sure that the order of files, graphs, X, and Y all correspond to each other.
+        # TODO : test to make sure order of rows matches order of `self.files`.
+        # TODO : test to make sure order within rows matches order within arrays of `self.files`.
+        pass
 
-# test files
-# TODO : check if all files are edgelists with the correct stuff in them,
-#        and if they are not,
-#        raise an exception
+    def test_PTR(self, ND):
+        # TODO : make sure I can recreate X and Y from the files in `save_X_and_Y`
+        # TODO : make sure I refresh the NdmgDirectory object after testing _pass_to_ranks
+        pass
 
-# TODO : tests to make sure that the order of files, graphs, X, and Y all correspond to each other.
-
-# test graphs
-# TODO : test to make sure sort order is the same as `self.files`
-
-# test Y
-# TODO : test to make sure sort order is the same as `self.files`
-
-# test _X
-# TODO : test to make sure order of rows matches order of `self.files`.
-# TODO : test to make sure order within rows matches order within arrays of `self.files`.
-
-# Test _pass_to_ranks
-
-# test save_X_and_Y
+    def test_save_X_and_Y(self, ND):
+        pass

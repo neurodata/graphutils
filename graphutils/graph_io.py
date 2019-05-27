@@ -1,6 +1,5 @@
 """graph_io: input/output utilities for graphs.
 """
-#%%
 from pathlib import Path
 import os
 import re
@@ -11,10 +10,6 @@ import numpy as np
 from scipy.stats import rankdata
 from graspy.utils import pass_to_ranks as PTR
 from graspy.utils import import_edgelist
-
-
-def foo():
-    pass
 
 
 class NdmgDirectory:
@@ -63,6 +58,10 @@ class NdmgDirectory:
             self.graphs = self._graphs()
             self.X = self._X()
             self.Y = self._Y()
+
+        # works because of falsiness of 0
+        if not len(self.files):
+            print("Warning : There are no edgelists in this directory.")
 
     def __repr__(self):
         return f"NdmgDirectory object at {str(self.dir)}"
@@ -179,6 +178,7 @@ class NdmgDirectory:
             graphs[graphs != 0] = rank
             return graphs
 
+        # TODO : this could likely be done more pythonically
         if on == "X":
             self.X = PTR_functionality(self.X)
         elif on == "graphs":
