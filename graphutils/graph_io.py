@@ -12,7 +12,11 @@ from scipy.stats import rankdata
 from graspy.utils import pass_to_ranks as PTR
 from graspy.utils import import_edgelist
 
-#%%
+
+def foo():
+    pass
+
+
 class NdmgDirectory:
     """Class that contains utility methods for use on a `ndmg` output directory.
        Contains derived properties, and useful methods.
@@ -21,6 +25,8 @@ class NdmgDirectory:
     ----------
     dir : Path
         Path object to the directory containing edgelists.
+    name : str
+        Base name of directory.
     files : list, sorted
         List of path objects corresponding to each edgelist.
     graphs : np.ndarray, shape (n, v, v), 3D
@@ -34,17 +40,16 @@ class NdmgDirectory:
 
     Methods
     -------
-    _X : returns np.ndarray, shape (n, v*v), 2D
-        helper function to create `self.X.`
-        Allows `self.X` to remain a property,
-        but gives functionality for specifying pass-to-ranks on a particular set of graphs.
-    _pass_to_ranks : returns np.ndarray
-        returns an adjacency matrix with pass-to-ranks called on it.
+    _pass_to_ranks : returns None
+        change state of object.
+        calls pass to ranks on `self.graphs`, `self.X`, or both.
     save_X_and_Y : returns None
         Saves `self.X` and `self.Y` into a directory.
     """
 
     # TODO : tests to make sure that the order of files, graphs, X, and Y all correspond to each other.
+    # TODO : automatically find delimiter
+    # TODO : functionality for calculating discriminability
 
     def __init__(self, directory):
         if not isinstance(directory, (str, Path)):
@@ -54,13 +59,15 @@ class NdmgDirectory:
         else:
             self.dir = Path(directory)
             self.name = self.dir.name
-            self.X = self.X()
+            self.files = self._files()
+            self.graphs = self._graphs()
+            self.X = self._X()
+            self.Y = self._Y()
 
     def __repr__(self):
-        return str(self.dir)
+        return f"NdmgDirectory object at {str(self.dir)}"
 
-    @property
-    def files(self):
+    def _files(self):
         """
         From a directory containing edgelist files, 
         return a list of edgelist files, 
@@ -80,7 +87,7 @@ class NdmgDirectory:
         # TODO : check if all files are edgelists with the correct stuff in them,
         #        and if they are not,
         #        raise an exception
-        correct_suffixes = [".ssv", ".csv"]
+        correct_suffixes = {".ssv", ".csv"}
         output = sorted(
             [
                 filepath
@@ -90,8 +97,7 @@ class NdmgDirectory:
         )
         return output
 
-    @property
-    def graphs(self):
+    def _graphs(self):
         """
         volumetric numpy array, shape (n, v, v),
         accounting for isolate nodes by unioning the vertices of all component edgelists,
@@ -108,8 +114,7 @@ class NdmgDirectory:
         list_of_arrays = import_edgelist(self.files)
         return np.array(list_of_arrays)
 
-    @property
-    def Y(self):
+    def _Y(self):
         """
         Get subject IDs
         
@@ -123,7 +128,7 @@ class NdmgDirectory:
         names = [re.findall(pattern, str(edgelist))[0] for edgelist in self.files]
         return np.array(names)
 
-    def _X(self, PTR=False):
+    def _X(self):
         """
         this will be a single matrix,
         created by vectorizing each array in `self.graphs`,
@@ -144,12 +149,9 @@ class NdmgDirectory:
         """
         # TODO : test to make sure order of rows matches order of `self.files`.
         # TODO : test to make sure order within rows matches order within arrays of `self.files`.
-        graphs = self.graphs.copy()
-        if graphs.ndim == 3:
-            if PTR:
-                graphs = self._pass_to_ranks(graphs=graphs)
-            n, v1, v2 = np.shape(graphs)
-            return np.reshape(graphs, (n, v1 * v2))
+        if self.graphs.ndim == 3:
+            n, v1, v2 = np.shape(self.graphs)
+            return np.reshape(self.graphs, (n, v1 * v2))
         else:
             raise ValueError("Dimensionality of input must be 3.")
 
@@ -168,8 +170,8 @@ class NdmgDirectory:
             if X, call pass to ranks on `self.X`
             if graphs, call pass to ranks on `self.graphs`.
         """
-        # TODO : make this functionality change state of self.X and self.graphs.
-        def functionality(graphs):
+
+        def PTR_functionality(graphs):
             non_zeros = graphs[graphs != 0]
             rank = rankdata(non_zeros)
             normalizer = rank.shape[0]
@@ -178,13 +180,14 @@ class NdmgDirectory:
             return graphs
 
         if on == "X":
-            graphs = self.X
+            self.X = PTR_functionality(self.X)
         elif on == "graphs":
-            graphs = self.graphs.copy()
+            self.graphs = PTR_functionality(self.X)
+        elif on == "all":
+            self.X = PTR_functionality(self.X)
+            self.graphs = PTR_functionality(self.graphs)
         else:
             raise ValueError("`on` must be all, X, or graphs.")
-
-        return functionality(graphs)
 
     def save_X_and_Y(self, output_directory="."):
         # TODO : test this method
@@ -204,6 +207,3 @@ class NdmgDirectory:
             f"{output_directory}/{self.name}_X.csv", self.X, fmt="%f", delimiter=","
         )
         np.savetxt(f"{output_directory}/{self.name}_Y.csv", self.Y, fmt="%s")
-
-
-# TODO : test this
