@@ -60,11 +60,9 @@ class NdmgDirectory:
         else:
             self.dir = Path(directory)
             self.name = self.dir.name
-            self.delimiter = delimiter  # TODO : make this dynamic
+            self.delimiter = delimiter
             self.files = self._files()
-            self.vertices = np.sort(
-                reduce(np.union1d, [G.nodes for G in self._nx_graphs])
-            )
+            self.vertices = self._vertices()
             self.graphs = self._graphs()
             self.X = self._X()
             self.Y = self._Y()
@@ -121,6 +119,9 @@ class NdmgDirectory:
             for f in self.files
         ]
         return nx_graphs
+
+    def _vertices(self):
+        self.vertices = np.sort(reduce(np.union1d, [G.nodes for G in self._nx_graphs]))
 
     def _graphs(self):
         """
@@ -233,12 +234,3 @@ class NdmgDirectory:
             f"{output_directory}/{self.name}_X.csv", self.X, fmt="%f", delimiter=","
         )
         np.savetxt(f"{output_directory}/{self.name}_Y.csv", self.Y, fmt="%s")
-
-
-DATAPATH = "/Users/alex/Dropbox/NeuroData/graphutils/tests/test_data"
-ND = NdmgDirectory(DATAPATH)
-
-graph0_files = ND.files[0]
-graph0_graphs = ND.graphs[0]
-graph0_X = ND.X[0].reshape(int(np.sqrt(ND.X.shape[1])), int(np.sqrt(ND.X.shape[1])))
-graph0_Y = ND.Y[0]

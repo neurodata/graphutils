@@ -50,9 +50,7 @@ class TestNdmgDirectory:
             assert array.shape[1] == 3
 
     def test_ordering(self, ND):
-        # TODO : tests to make sure that the order of files, graphs, X, and Y all correspond to each other.
-        # TODO : test to make sure order of rows matches order of `self.files`.
-        # TODO : test to make sure order within rows matches order within arrays of `self.files`.
+        # test if ordering of all properties correspond
         for i, _ in enumerate(ND.files):
             graphi_file = ND.files[i]
             graphi_Y = ND.Y[i]
