@@ -1,3 +1,4 @@
+#%%
 """graph_io: input/output utilities for graphs.
 """
 from pathlib import Path
@@ -207,3 +208,12 @@ class NdmgDirectory:
             f"{output_directory}/{self.name}_X.csv", self.X, fmt="%f", delimiter=","
         )
         np.savetxt(f"{output_directory}/{self.name}_Y.csv", self.Y, fmt="%s")
+
+
+DATAPATH = "/Users/alex/Dropbox/NeuroData/graphutils/tests/test_data"
+ND = NdmgDirectory(DATAPATH)
+
+graph0_files = ND.files[0]
+graph0_graphs = ND.graphs[0]
+graph0_X = ND.X[0].reshape(int(np.sqrt(ND.X.shape[1])), int(np.sqrt(ND.X.shape[1])))
+graph0_Y = ND.Y[0]

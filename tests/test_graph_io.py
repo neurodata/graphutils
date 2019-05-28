@@ -51,7 +51,23 @@ class TestNdmgDirectory:
         # TODO : tests to make sure that the order of files, graphs, X, and Y all correspond to each other.
         # TODO : test to make sure order of rows matches order of `self.files`.
         # TODO : test to make sure order within rows matches order within arrays of `self.files`.
-        pass
+        for i, _ in enumerate(ND.files):
+            graphi_file = ND.files[i]
+            graphi_Y = ND.Y[i]
+            graphi_graph = ND.graphs[i]
+            graphi_X = ND.X[i].reshape(
+                int(np.sqrt(ND.X.shape[1])), int(np.sqrt(ND.X.shape[1]))
+            )
+
+            # graphs/X-rows correspond to same scan
+            assert np.all(graphi_graph == graphi_X)
+
+            # subject/files correspond to same scan
+            pattern = r"(?<=sub-)(\w*)(?=_ses)
+            assert re.findall(pattern, str(graphi_file))[0] == graphi_Y
+
+            # subject/files and graphs/X-rows correspond to the same scan
+            assert 
 
     def test_PTR(self, ND):
         # TODO : make sure I can recreate X and Y from the files in `save_X_and_Y`
