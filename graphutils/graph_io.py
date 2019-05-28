@@ -5,6 +5,7 @@ from pathlib import Path
 import os
 import re
 from typing import List
+from functools import reduce
 
 import networkx as nx
 import numpy as np
@@ -23,8 +24,12 @@ class NdmgDirectory:
         Path object to the directory containing edgelists.
     name : str
         Base name of directory.
+    delimiter : str
+        delimiter in edgelist files.
     files : list, sorted
         List of path objects corresponding to each edgelist.
+    vertices : np.ndarray
+        sorted union of all nodes across edgelists.
     graphs : np.ndarray, shape (n, v, v), 3D
         Volumetric numpy array, n vxv adjacency matrices corresponding to each edgelist.
         graphs[0, :, :] corresponds to files[0].
@@ -43,11 +48,11 @@ class NdmgDirectory:
         Saves `self.X` and `self.Y` into a directory.
     """
 
-    # TODO : tests to make sure that the order of files, graphs, X, and Y all correspond to each other.
     # TODO : automatically find delimiter
     # TODO : functionality for calculating discriminability
+    # TODO : add delimiter everywhere
 
-    def __init__(self, directory):
+    def __init__(self, directory, delimiter=" "):
         if not isinstance(directory, (str, Path)):
             # TODO : {type(directory)} isn't returning output in `message`
             message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
@@ -55,7 +60,11 @@ class NdmgDirectory:
         else:
             self.dir = Path(directory)
             self.name = self.dir.name
+            self.delimiter = delimiter  # TODO : make this dynamic
             self.files = self._files()
+            self.vertices = np.sort(
+                reduce(np.union1d, [G.nodes for G in self._nx_graphs])
+            )
             self.graphs = self._graphs()
             self.X = self._X()
             self.Y = self._Y()
@@ -97,6 +106,22 @@ class NdmgDirectory:
         )
         return output
 
+    @property
+    def _nx_graphs(self):
+        """
+        List of networkx graph objects. Hidden property, mainly for use to calculate vertices.
+
+        Returns
+        -------
+        nx_graphs : List[nx.Graph]
+            List of networkX graphs corresponding to subjects.
+        """
+        nx_graphs = [
+            nx.read_weighted_edgelist(f, nodetype=int, delimiter=self.delimiter)
+            for f in self.files
+        ]
+        return nx_graphs
+
     def _graphs(self):
         """
         volumetric numpy array, shape (n, v, v),
@@ -111,7 +136,7 @@ class NdmgDirectory:
 
         """
         # TODO : test to make sure sort order is the same as `self.files`
-        list_of_arrays = import_edgelist(self.files)
+        list_of_arrays = import_edgelist(self.files, delimiter=self.delimiter)
         return np.array(list_of_arrays)
 
     def _Y(self):

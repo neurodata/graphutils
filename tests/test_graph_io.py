@@ -1,11 +1,13 @@
 import os
 import shutil
 from pathlib import Path
+import re
 
-from graphutils import graph_io
 import pytest
 import numpy as np
+import networkx as nx
 from graphutils.graph_io import NdmgDirectory
+from graphutils import graph_io
 
 
 DATAPATH = "/Users/alex/Dropbox/NeuroData/graphutils/tests/test_data"
@@ -63,11 +65,17 @@ class TestNdmgDirectory:
             assert np.all(graphi_graph == graphi_X)
 
             # subject/files correspond to same scan
-            pattern = r"(?<=sub-)(\w*)(?=_ses)
+            pattern = r"(?<=sub-)(\w*)(?=_ses)"
             assert re.findall(pattern, str(graphi_file))[0] == graphi_Y
 
             # subject/files and graphs/X-rows correspond to the same scan
-            assert 
+            current_NX = nx.read_weighted_edgelist(
+                graphi_file, nodetype=int, delimiter=ND.delimiter
+            )
+            graph_from_file_i = nx.to_numpy_array(
+                current_NX, nodelist=ND.vertices, dtype=np.float
+            )
+            assert np.all(graph_from_file_i == graphi_graph)
 
     def test_PTR(self, ND):
         # TODO : make sure I can recreate X and Y from the files in `save_X_and_Y`
