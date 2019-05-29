@@ -228,8 +228,8 @@ class NdmgDirectory:
 
         Returns
         -------
-        namedtuple
-            namedtuple of `name.X, name.Y`.
+        namedtuple with str
+            namedtuple of `name.X, name.Y`. Paths to X and Y.
         """
         if output_directory == "cwd":
             output_directory = Path.cwd()

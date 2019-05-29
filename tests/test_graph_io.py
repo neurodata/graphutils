@@ -60,7 +60,7 @@ class TestNdmgDirectory:
             )
 
             # graphs/X-rows correspond to same scan
-            assert np.all(graphi_graph == graphi_X)
+            assert np.array_equal(graphi_graph, graphi_X)
 
             # subject/files correspond to same scan
             pattern = r"(?<=sub-)(\w*)(?=_ses)"
