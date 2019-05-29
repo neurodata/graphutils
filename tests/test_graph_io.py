@@ -65,7 +65,6 @@ class TestNdmgDirectory:
             # subject/files correspond to same scan
             pattern = r"(?<=sub-)(\w*)(?=_ses)"
             assert re.findall(pattern, str(graphi_file))[0] == graphi_Y
-
             # subject/files and graphs/X-rows correspond to the same scan
             current_NX = nx.read_weighted_edgelist(
                 graphi_file, nodetype=int, delimiter=ND.delimiter
@@ -73,12 +72,21 @@ class TestNdmgDirectory:
             graph_from_file_i = nx.to_numpy_array(
                 current_NX, nodelist=ND.vertices, dtype=np.float
             )
-            assert np.all(graph_from_file_i == graphi_graph)
+            assert np.array_equal(graph_from_file_i, graphi_graph)
 
     def test_PTR(self, ND):
         # TODO : make sure I can recreate X and Y from the files in `save_X_and_Y`
         # TODO : make sure I refresh the NdmgDirectory object after testing _pass_to_ranks
         pass
 
-    def test_save_X_and_Y(self, ND):
-        pass
+    def test_save_X_and_Y(self, ND, tmp_path_factory):
+        # assert we can recreate X and Y from the csv's
+        tmp = tmp_path_factory.mktemp("savedir")
+        saveloc = ND.save_X_and_Y(tmp)
+
+        X = np.loadtxt(saveloc.X, delimiter=",")
+        Y = np.loadtxt(saveloc.Y, dtype=str)
+
+        assert np.array_equal(ND.X, X)
+        assert np.array_equal(ND.Y, Y)
+

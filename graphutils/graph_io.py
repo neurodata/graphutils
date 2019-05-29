@@ -6,6 +6,7 @@ import os
 import re
 from typing import List
 from functools import reduce
+from collections import namedtuple
 
 import networkx as nx
 import numpy as np
@@ -48,7 +49,6 @@ class NdmgDirectory:
         Saves `self.X` and `self.Y` into a directory.
     """
 
-    # TODO : automatically find delimiter
     # TODO : functionality for calculating discriminability
     # TODO : add delimiter everywhere
 
@@ -71,16 +71,18 @@ class NdmgDirectory:
         if not len(self.files):
             print("Warning : There are no edgelists in this directory.")
 
+        print("initiated")
+
     def __repr__(self):
-        return f"NdmgDirectory object at {str(self.dir)}"
+        return f"NdmgDirectory obj at {str(self.dir)}"
 
     def _files(self):
         """
         From a directory containing edgelist files, 
         return a list of edgelist files, 
-        sorted alphabetically.
+        sorted.
 
-        This property is ground truth for how the n's should be sorted.
+        This property is ground truth for how the scans should be sorted.
         
         Parameters
         ----------
@@ -121,7 +123,7 @@ class NdmgDirectory:
         return nx_graphs
 
     def _vertices(self):
-        self.vertices = np.sort(reduce(np.union1d, [G.nodes for G in self._nx_graphs]))
+        return np.sort(reduce(np.union1d, [G.nodes for G in self._nx_graphs]))
 
     def _graphs(self):
         """
@@ -136,7 +138,6 @@ class NdmgDirectory:
             graphs[0, :, :] corresponds to files[0].D
 
         """
-        # TODO : test to make sure sort order is the same as `self.files`
         list_of_arrays = import_edgelist(self.files, delimiter=self.delimiter)
         return np.array(list_of_arrays)
 
@@ -149,7 +150,6 @@ class NdmgDirectory:
         out : np.ndarray 
             Array of strings. Each element is a subject ID.
         """
-        # TODO : test to make sure sort order is the same as `self.files`
         pattern = r"(?<=sub-)(\w*)(?=_ses)"
         names = [re.findall(pattern, str(edgelist))[0] for edgelist in self.files]
         return np.array(names)
@@ -173,24 +173,24 @@ class NdmgDirectory:
         X : np.ndarray, shape (n, v*v), 2D
             numpy array, created by vectorizing each adjacency matrix and stacking.
         """
-        # TODO : test to make sure order of rows matches order of `self.files`.
-        # TODO : test to make sure order within rows matches order within arrays of `self.files`.
         if self.graphs.ndim == 3:
             n, v1, v2 = np.shape(self.graphs)
             return np.reshape(self.graphs, (n, v1 * v2))
         else:
             raise ValueError("Dimensionality of input must be 3.")
 
-    def _pass_to_ranks(self, method="simple-nonzero", on="all"):
+    def _pass_to_ranks(self, on="all"):
         """
         pass-to-ranks method, to call on `self.graphs` or `self.X`.
         When called, modifies one or both of these properties,
         depending on parameters.
 
+        Assigns ranks to all non-zero edges, settling ties using 
+        the average. Ranks are then scaled by 
+        :math:`\frac{rank(\text{non-zero edges})}{\text{total non-zero edges} + 1}`.
+
         Parameters
         ----------
-        method : str
-            how to pass to ranks
         on : str, "all", "X", or "graphs"
             if all, call pass to ranks on `self.X` and `self.graphs`
             if X, call pass to ranks on `self.X`
@@ -216,21 +216,32 @@ class NdmgDirectory:
         else:
             raise ValueError("`on` must be all, X, or graphs.")
 
-    def save_X_and_Y(self, output_directory="."):
+    def save_X_and_Y(self, output_directory="cwd"):
         # TODO : test this method
         """
         Save `self.X` and `self.Y` into an output directory.
 
         Parameters
+        ----------
+        output_directory : str, default current working directory
+            Directory in which to save the output.
 
         Returns
         -------
-        X : np.ndarray, shape (n, v*v), 2D
-            numpy array, created by vectorizing each adjacency matrix and stacking.
+        namedtuple
+            namedtuple of `name.X, name.Y`.
         """
-        if output_directory == ".":
-            output_directory = os.getcwd()
-        np.savetxt(
-            f"{output_directory}/{self.name}_X.csv", self.X, fmt="%f", delimiter=","
-        )
-        np.savetxt(f"{output_directory}/{self.name}_Y.csv", self.Y, fmt="%s")
+        if output_directory == "cwd":
+            output_directory = Path.cwd()
+        p = Path(output_directory)
+        p.mkdir(parents=True, exist_ok=True)
+
+        X_name = f"{str(p)}/{self.name}_X.csv"
+        Y_name = f"{str(p)}/{self.name}_Y.csv"
+
+        np.savetxt(X_name, self.X, fmt="%f", delimiter=",")
+        np.savetxt(Y_name, self.Y, fmt="%s")
+
+        name = namedtuple("name", ["X", "Y"])
+        print("updated")
+        return name(X_name, Y_name)
