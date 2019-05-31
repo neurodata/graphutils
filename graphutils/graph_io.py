@@ -87,7 +87,6 @@ class NdmgDirectory:
                     output.append(Path(dirname) / Path(filename))
 
         # TODO : put this in pytest instead
-        assert all([filename.exists() for filename in output]), "Filenames do not exist."
         return sorted(output)
 
     @property
