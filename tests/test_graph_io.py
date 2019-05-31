@@ -36,8 +36,15 @@ class TestNdmgDirectory:
 
     def test_object_has_attributes(self, ND):
         assert all(
-            hasattr(ND, attr) for attr in ["dir", "name", "files", "graphs", "X", "Y"]
+            hasattr(ND, attr) for attr in ["delimiter", "directory", "name", "files", "vertices", "graphs", "subjects"]
         )
+
+        assert ND.directory, "directory doesn't exist"
+        assert ND.files, "no files found"
+        assert ND.vertices, "vertices not calculated properly"
+        assert ND.graphs, "graphs doesn't exist"
+        assert ND.subjects, "subjects doesn't exist"
+
 
     def test_files_has_data(self, ND):
         # check if there are files
@@ -48,23 +55,24 @@ class TestNdmgDirectory:
             # TODO : dynamic delimiter, should be ND.delimiter
             array = np.genfromtxt(str(filename), delimiter=" ")
             assert array.shape[1] == 3
+        
 
     def test_ordering(self, ND):
         # test if ordering of all properties correspond
         for i, _ in enumerate(ND.files):
             graphi_file = ND.files[i]
-            graphi_Y = ND.Y[i]
+            graphi_subject = ND.subjects[i]
             graphi_graph = ND.graphs[i]
-            graphi_X = ND.X[i].reshape(
-                int(np.sqrt(ND.X.shape[1])), int(np.sqrt(ND.X.shape[1]))
-            )
+            # graphi_X = ND.X[i].reshape(
+            #     int(np.sqrt(ND.X.shape[1])), int(np.sqrt(ND.X.shape[1]))
+            # )  # TODO
 
             # graphs/X-rows correspond to same scan
-            assert np.array_equal(graphi_graph, graphi_X)
+            # assert np.array_equal(graphi_graph, graphi_X)  # TODO
 
             # subject/files correspond to same scan
             pattern = r"(?<=sub-)(\w*)(?=_ses)"
-            assert re.findall(pattern, str(graphi_file))[0] == graphi_Y
+            assert re.findall(pattern, str(graphi_file))[0] == graphi_subject
             # subject/files and graphs/X-rows correspond to the same scan
             current_NX = nx.read_weighted_edgelist(
                 graphi_file, nodetype=int, delimiter=ND.delimiter
@@ -74,19 +82,20 @@ class TestNdmgDirectory:
             )
             assert np.array_equal(graph_from_file_i, graphi_graph)
 
-    def test_PTR(self, ND):
-        # TODO : make sure I can recreate X and Y from the files in `save_X_and_Y`
-        # TODO : make sure I refresh the NdmgDirectory object after testing _pass_to_ranks
-        pass
+# TODO : tests for NdmgDiscrim
+    # def test_PTR(self, ND):
+    #     # TODO : make sure I can recreate X and Y from the files in `save_X_and_Y`
+    #     # TODO : make sure I refresh the NdmgDirectory object after testing _pass_to_ranks
+    #     pass
 
-    def test_save_X_and_Y(self, ND, tmp_path_factory):
-        # assert we can recreate X and Y from the csv's
-        tmp = tmp_path_factory.mktemp("savedir")
-        saveloc = ND.save_X_and_Y(tmp)
+    # def test_save_X_and_Y(self, ND, tmp_path_factory):  # TODO
+    #     # assert we can recreate X and Y from the csv's
+    #     tmp = tmp_path_factory.mktemp("savedir")
+    #     saveloc = ND.save_X_and_Y(tmp)
 
-        X = np.loadtxt(saveloc.X, delimiter=",")
-        Y = np.loadtxt(saveloc.Y, dtype=str)
+    #     X = np.loadtxt(saveloc.X, delimiter=",")
+    #     Y = np.loadtxt(saveloc.Y, dtype=str)
 
-        assert np.array_equal(ND.X, X)
-        assert np.array_equal(ND.Y, Y)
+    #     assert np.array_equal(ND.X, X)
+    #     assert np.array_equal(ND.Y, Y)
 
