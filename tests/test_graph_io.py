@@ -40,6 +40,9 @@ class TestNdmgDirectory:
         # check if there are files
         assert len(ND.files) != 0, f"{dir(ND)}"
 
+        # check if those files exist locally
+        assert all([filename.exists() for filename in ND.files]), "Filenames do not exist."
+
         # check if all files have data in them
         for filename in ND.files:
             # TODO : dynamic delimiter, should be ND.delimiter

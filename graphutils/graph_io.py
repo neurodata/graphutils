@@ -79,23 +79,6 @@ class NdmgDirectory:
         output : list, sorted
             Sorted list of Paths to files in `path`.
         """
-        # TODO : check if all files are edgelists with the correct stuff in them,
-        #        and if they are not,
-        #        raise an exception
-        # correct_suffixes = {".ssv", ".csv"}
-        # edgelists = glob.glob(f'{directory}/**/*.ssv', recursive=True)
-        # return sorted(edgelists)  # TODO
-
-        # output = sorted(
-        #     [
-        #         filepath
-        #         for filepath in self.directory.iterdir()
-        #         if filepath.suffix in correct_suffixes
-        #     ]
-        # )
-        # return output
-        # TODO : starting at `roi_connectomes` would make this faster, but more fragile
-        # TODO : test to make sure all filenames exist
         output = []
         correct_suffixes = {".ssv", ".csv"}
         for dirname, _, files in os.walk(directory):
@@ -103,6 +86,7 @@ class NdmgDirectory:
                 if Path(filename).suffix in correct_suffixes:
                     output.append(Path(dirname) / Path(filename))
 
+        # TODO : put this in pytest instead
         assert all([filename.exists() for filename in output]), "Filenames do not exist."
         return sorted(output)
 
@@ -232,7 +216,6 @@ class NdmgDiscrim(NdmgDirectory):
             graphs[graphs != 0] = rank
             return graphs
 
-        # TODO : this could likely be done more pythonically
         if on == "X":
             self.X = PTR_functionality(self.X)
         elif on == "graphs":
@@ -274,6 +257,3 @@ class NdmgDiscrim(NdmgDirectory):
     def discriminability(self):
         # TODO
         pass
-
-DATAPATH = "/Users/alex/Dropbox/NeuroData/graphutils/tests/data"
-d = NdmgDiscrim(DATAPATH)
