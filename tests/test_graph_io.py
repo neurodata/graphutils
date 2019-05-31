@@ -24,23 +24,23 @@ def basedir(tmp_path):
     return tmp_path
 
 # def ND(self, shared_datadir):
-@pytest.fixture
-def ND(basedir):
-    return NdmgDirectory(basedir)
-
-# def NDD(self, shared_datadir):
-@pytest.fixture
-def NDD(basedir):
-    return NdmgDiscrim(basedir)
-
 # @pytest.fixture
-# def ND(shared_datadir):
-#     return NdmgDirectory(shared_datadir)
+# def ND(basedir):
+#     return NdmgDirectory(basedir)
 
 # # def NDD(self, shared_datadir):
 # @pytest.fixture
 # def NDD(basedir):
-#     return NdmgDiscrim(shared_datadir)
+#     return NdmgDiscrim(basedir)
+
+@pytest.fixture
+def ND(shared_datadir):
+    return NdmgDirectory(shared_datadir)
+
+# def NDD(self, shared_datadir):
+@pytest.fixture
+def NDD(shared_datadir):
+    return NdmgDiscrim(shared_datadir)
 
 class TestNdmgDirectory:
 
@@ -106,14 +106,14 @@ class TestNdmgDiscrim:
         # TODO : make sure I refresh the NdmgDirectory object after testing _pass_to_ranks
         pass
 
-    def test_save_X_and_Y(self, NDD, tmp_path_factory):  # TODO
+    def test_save_X_and_Y(self, NDD, tmp_path_factory):
         # assert we can recreate X and Y from the csv's
         tmp = tmp_path_factory.mktemp("savedir")
-        saveloc = ND.save_X_and_Y(tmp)
+        saveloc = NDD.save_X_and_Y(tmp)
 
         X = np.loadtxt(saveloc.X, delimiter=",")
         Y = np.loadtxt(saveloc.Y, dtype=str)
 
-        assert np.array_equal(ND.X, X)
-        assert np.array_equal(ND.Y, Y)
+        assert np.array_equal(NDD.X, X)
+        assert np.array_equal(NDD.subjects, Y)
 
