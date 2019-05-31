@@ -175,6 +175,9 @@ class NdmgDiscrim(NdmgDirectory):
         super().__init__(directory, delimiter)
         self.X = self._X()
 
+    def __repr__(self):
+        return f"NdmgDiscrim obj at {str(self.directory)}"
+
     def _X(self):
         """
         this will be a single matrix,
@@ -241,9 +244,8 @@ class NdmgDiscrim(NdmgDirectory):
             raise ValueError("`on` must be all, X, or graphs.")
 
     def save_X_and_Y(self, output_directory="cwd"):
-        # TODO : update this method
         """
-        Save `self.X` and `self.Y` into an output directory.
+        Save `self.X` and `self.subjects` into an output directory.
 
         Parameters
         ----------
@@ -264,7 +266,7 @@ class NdmgDiscrim(NdmgDirectory):
         Y_name = f"{str(p)}/{self.name}_Y.csv"
 
         np.savetxt(X_name, self.X, fmt="%f", delimiter=",")
-        np.savetxt(Y_name, self.Y, fmt="%s")
+        np.savetxt(Y_name, self.subjects, fmt="%s")
 
         name = namedtuple("name", ["X", "Y"])
         return name(X_name, Y_name)
@@ -273,8 +275,5 @@ class NdmgDiscrim(NdmgDirectory):
         # TODO
         pass
 
-DATAPATH = "/Users/alex/Dropbox/NeuroData/graphutils/tests/test_data"
-
-directory = "/Users/alex/data/output"
-
-d = NdmgDirectory(directory)
+DATAPATH = "/Users/alex/Dropbox/NeuroData/graphutils/tests/data"
+d = NdmgDiscrim(DATAPATH)

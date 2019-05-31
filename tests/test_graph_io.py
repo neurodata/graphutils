@@ -7,10 +7,10 @@ import pytest
 import numpy as np
 import networkx as nx
 from graphutils.graph_io import NdmgDirectory
-from graphutils import graph_io
+from graphutils.graph_io import NdmgDiscrim
 
 
-DATAPATH = "/Users/alex/Dropbox/NeuroData/graphutils/tests/test_data"
+DATAPATH = "/Users/alex/Dropbox/NeuroData/graphutils/tests/data"
 # TODO : make sure pass_to_ranks does what I think it does
 
 
@@ -23,16 +23,30 @@ def basedir(tmp_path):
         shutil.copy(filename, tmp_path)
     return tmp_path
 
-
+# def ND(self, shared_datadir):
 @pytest.fixture
 def ND(basedir):
-    # so that I don't have to instantiate all the time
     return NdmgDirectory(basedir)
 
+# def NDD(self, shared_datadir):
+@pytest.fixture
+def NDD(basedir):
+    return NdmgDiscrim(basedir)
+
+# @pytest.fixture
+# def ND(shared_datadir):
+#     return NdmgDirectory(shared_datadir)
+
+# # def NDD(self, shared_datadir):
+# @pytest.fixture
+# def NDD(basedir):
+#     return NdmgDiscrim(shared_datadir)
 
 class TestNdmgDirectory:
-    def test_dir(self, basedir):
-        assert isinstance(basedir, Path)
+
+
+    def test_dir(self, shared_datadir):
+        assert isinstance(shared_datadir, Path)
 
     def test_object_has_attributes(self, ND):
         assert all(
@@ -41,9 +55,9 @@ class TestNdmgDirectory:
 
         assert ND.directory, "directory doesn't exist"
         assert ND.files, "no files found"
-        assert ND.vertices, "vertices not calculated properly"
-        assert ND.graphs, "graphs doesn't exist"
-        assert ND.subjects, "subjects doesn't exist"
+        assert isinstance(ND.subjects, np.ndarray), "subjects doesn't exist"
+        assert isinstance(ND.graphs, np.ndarray), "graphs doesn't exist"
+        assert isinstance(ND.vertices, np.ndarray), "graphs doesn't exist"
 
 
     def test_files_has_data(self, ND):
@@ -82,20 +96,24 @@ class TestNdmgDirectory:
             )
             assert np.array_equal(graph_from_file_i, graphi_graph)
 
-# TODO : tests for NdmgDiscrim
-    # def test_PTR(self, ND):
-    #     # TODO : make sure I can recreate X and Y from the files in `save_X_and_Y`
-    #     # TODO : make sure I refresh the NdmgDirectory object after testing _pass_to_ranks
-    #     pass
+class TestNdmgDiscrim:
 
-    # def test_save_X_and_Y(self, ND, tmp_path_factory):  # TODO
-    #     # assert we can recreate X and Y from the csv's
-    #     tmp = tmp_path_factory.mktemp("savedir")
-    #     saveloc = ND.save_X_and_Y(tmp)
+    def test_dir(self, shared_datadir):
+        assert isinstance(shared_datadir, Path)
 
-    #     X = np.loadtxt(saveloc.X, delimiter=",")
-    #     Y = np.loadtxt(saveloc.Y, dtype=str)
+    def test_PTR(self, NDD):
+        # TODO : make sure I can recreate X and Y from the files in `save_X_and_Y`
+        # TODO : make sure I refresh the NdmgDirectory object after testing _pass_to_ranks
+        pass
 
-    #     assert np.array_equal(ND.X, X)
-    #     assert np.array_equal(ND.Y, Y)
+    def test_save_X_and_Y(self, NDD, tmp_path_factory):  # TODO
+        # assert we can recreate X and Y from the csv's
+        tmp = tmp_path_factory.mktemp("savedir")
+        saveloc = ND.save_X_and_Y(tmp)
+
+        X = np.loadtxt(saveloc.X, delimiter=",")
+        Y = np.loadtxt(saveloc.Y, dtype=str)
+
+        assert np.array_equal(ND.X, X)
+        assert np.array_equal(ND.Y, Y)
 
