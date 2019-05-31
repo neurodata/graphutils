@@ -10,34 +10,10 @@ from graphutils.graph_io import NdmgDirectory
 from graphutils.graph_io import NdmgDiscrim
 
 
-DATAPATH = "/Users/alex/Dropbox/NeuroData/graphutils/tests/data"
-# TODO : make sure pass_to_ranks does what I think it does
-
-
-@pytest.fixture
-def basedir(tmp_path):
-    # populate tmpdir with file
-    # TODO : figure out how to not have to instantiate this every time
-    #        a test is run
-    for filename in Path(DATAPATH).iterdir():
-        shutil.copy(filename, tmp_path)
-    return tmp_path
-
-# def ND(self, shared_datadir):
-# @pytest.fixture
-# def ND(basedir):
-#     return NdmgDirectory(basedir)
-
-# # def NDD(self, shared_datadir):
-# @pytest.fixture
-# def NDD(basedir):
-#     return NdmgDiscrim(basedir)
-
 @pytest.fixture
 def ND(shared_datadir):
     return NdmgDirectory(shared_datadir)
 
-# def NDD(self, shared_datadir):
 @pytest.fixture
 def NDD(shared_datadir):
     return NdmgDiscrim(shared_datadir)
@@ -77,16 +53,11 @@ class TestNdmgDirectory:
             graphi_file = ND.files[i]
             graphi_subject = ND.subjects[i]
             graphi_graph = ND.graphs[i]
-            # graphi_X = ND.X[i].reshape(
-            #     int(np.sqrt(ND.X.shape[1])), int(np.sqrt(ND.X.shape[1]))
-            # )  # TODO
-
-            # graphs/X-rows correspond to same scan
-            # assert np.array_equal(graphi_graph, graphi_X)  # TODO
 
             # subject/files correspond to same scan
             pattern = r"(?<=sub-)(\w*)(?=_ses)"
             assert re.findall(pattern, str(graphi_file))[0] == graphi_subject
+
             # subject/files and graphs/X-rows correspond to the same scan
             current_NX = nx.read_weighted_edgelist(
                 graphi_file, nodetype=int, delimiter=ND.delimiter
@@ -97,7 +68,13 @@ class TestNdmgDirectory:
             assert np.array_equal(graph_from_file_i, graphi_graph)
 
 class TestNdmgDiscrim:
+    # TODO: test X ordering
+        # graphi_X = ND.X[i].reshape(
+        #     int(np.sqrt(ND.X.shape[1])), int(np.sqrt(ND.X.shape[1]))
+        # )  # TODO
 
+        # graphs/X-rows correspond to same scan
+        # assert np.array_equal(graphi_graph, graphi_X)  # TODO
     def test_dir(self, shared_datadir):
         assert isinstance(shared_datadir, Path)
 
