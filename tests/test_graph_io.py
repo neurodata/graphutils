@@ -34,7 +34,6 @@ class TestNdmgDirectory:
 
         # check if all files have data in them
         for filename in ND.files:
-            # TODO : dynamic delimiter, should be ND.delimiter
             array = np.genfromtxt(str(filename), delimiter=" ")
             assert array.shape[1] == 3
         
