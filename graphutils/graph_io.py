@@ -48,13 +48,15 @@ class NdmgDirectory:
             self.directory = Path(directory)
             self.name = self.directory.name
             self.files = self._files(directory)
-            self.vertices = self._vertices()
-            self.graphs = self._graphs()
-            self.subjects = self._subjects()
+            if not len(self.files):
+                warnings.warn("warning : no edgelists found.")
+            else:
+                self.vertices = self._vertices()
+                self.graphs = self._graphs()
+                self.subjects = self._subjects()
+                
 
         # works because of falsiness of 0
-        if not len(self.files):
-            print("Warning : There are no edgelists in this directory.")
 
     def __repr__(self):
         return f"NdmgDirectory obj at {str(self.directory)}"

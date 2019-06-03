@@ -7,19 +7,8 @@ import pytest
 import numpy as np
 import networkx as nx
 from graphutils.graph_io import NdmgDirectory
-from graphutils.graph_io import NdmgDiscrim
-
-
-@pytest.fixture
-def ND(shared_datadir):
-    return NdmgDirectory(shared_datadir)
-
-@pytest.fixture
-def NDD(shared_datadir):
-    return NdmgDiscrim(shared_datadir)
 
 class TestNdmgDirectory:
-
 
     def test_dir(self, shared_datadir):
         assert isinstance(shared_datadir, Path)
@@ -69,31 +58,3 @@ class TestNdmgDirectory:
                 current_NX, nodelist=ND.vertices, dtype=np.float
             )
             assert np.array_equal(graph_from_file_i, graphi_graph)
-
-class TestNdmgDiscrim:
-    # TODO: test X ordering
-        # graphi_X = ND.X[i].reshape(
-        #     int(np.sqrt(ND.X.shape[1])), int(np.sqrt(ND.X.shape[1]))
-        # )  # TODO
-
-        # graphs/X-rows correspond to same scan
-        # assert np.array_equal(graphi_graph, graphi_X)  # TODO
-    def test_dir(self, shared_datadir):
-        assert isinstance(shared_datadir, Path)
-
-    def test_PTR(self, NDD):
-        # TODO : make sure I can recreate X and Y from the files in `save_X_and_Y`
-        # TODO : make sure I refresh the NdmgDirectory object after testing _pass_to_ranks
-        pass
-
-    def test_save_X_and_Y(self, NDD, tmp_path_factory):
-        # assert we can recreate X and Y from the csv's
-        tmp = tmp_path_factory.mktemp("savedir")
-        saveloc = NDD.save_X_and_Y(tmp)
-
-        X = np.loadtxt(saveloc.X, delimiter=",")
-        Y = np.loadtxt(saveloc.Y, dtype=str)
-
-        assert np.array_equal(NDD.X, X)
-        assert np.array_equal(NDD.subjects, Y)
-
