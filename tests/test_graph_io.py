@@ -10,9 +10,6 @@ from graphutils.graph_io import NdmgDirectory
 
 class TestNdmgDirectory:
 
-    def test_dir(self, shared_datadir):
-        assert isinstance(shared_datadir, Path)
-
     def test_object_has_attributes(self, ND):
         assert all(
             hasattr(ND, attr) for attr in ["delimiter", "directory", "name", "files", "vertices", "graphs", "subjects"]
@@ -57,3 +54,13 @@ class TestNdmgDirectory:
                 current_NX, nodelist=ND.vertices, dtype=np.float
             )
             assert np.array_equal(graph_from_file_i, graphi_graph)
+
+    def test_to_directory(self, ND):
+        # TODO: use tmp_path_factory
+        p = Path("/tmp/testdir")
+        shutil.rmtree(p)
+        ND.to_directory(p)
+
+        # test that original directory still exists unchanged
+        for new, old in zip(sorted(p.iterdir()), ND.files):
+            assert new.name == old.name

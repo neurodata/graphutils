@@ -149,7 +149,6 @@ class NdmgDirectory:
         directory : str or Path
             directory to send files to.
         """
-        # TODO : test
         if dst is None:
             dst = self.directory
         p = Path(dst).resolve()

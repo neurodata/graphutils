@@ -27,8 +27,8 @@ class TestNdmgDiscrim:
         tmp = tmp_path_factory.mktemp("savedir")
         saveloc = NDD.save_X_and_Y(tmp)
 
-        X = np.loadtxt(saveloc.X, delimiter=",")
-        Y = np.loadtxt(saveloc.Y, dtype=str)
+        X = np.atleast_2d(np.loadtxt(saveloc.X, delimiter=","))
+        Y = np.atleast_1d(np.loadtxt(saveloc.Y, dtype=str))
 
         assert np.array_equal(NDD.X, X)
         assert np.array_equal(NDD.subjects, Y)
