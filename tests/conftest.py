@@ -14,3 +14,8 @@ def ND(shared_datadir, request):
 def NDD(shared_datadir, request):
     p = Path(request.param)
     return NdmgDiscrim(shared_datadir / p)
+
+@pytest.fixture()
+def S3(bucket):
+    p = "s3://ndmg-data/HNU1/ndmg_0-1-2/"
+    return NdmgDirectory(shared_datadir / p)
