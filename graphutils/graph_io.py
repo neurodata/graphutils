@@ -8,10 +8,22 @@ import re
 import glob
 from functools import reduce, partial
 import warnings
+import subprocess
+from configparser import ConfigParser
+from tempfile import TemporaryDirectory
 
+import boto3
 import networkx as nx
 import numpy as np
 from graspy.utils import import_edgelist
+
+from graphutils.utils import KEYWORDS, CORRECT_SUFFIXES
+from graphutils.utils import is_graph
+from graphutils.utils import filter_graph_files
+from graphutils.s3_utils import get_credentials
+from graphutils.s3_utils import get_matching_s3_objects
+from graphutils.s3_utils import s3_download_graph
+from graphutils.s3_utils import parse_path
 
 
 class NdmgDirectory:
@@ -25,6 +37,7 @@ class NdmgDirectory:
         The delimiter used in edgelists.
     directory : Path
         Path object to the directory passed to NdmgDirectory.
+        Takes either an s3 bucket or a local directory string as input.
     name : str
         Base name of directory.
     files : list, sorted
@@ -46,24 +59,23 @@ class NdmgDirectory:
         else:
             self.delimiter = delimiter
             self.directory = Path(directory)
-            self.name = self.directory.name
+            self.s3 = False
+            if str(self.directory).startswith("s3:"):
+                self.s3 = True
             self.files = self._files(directory)
+            self.name = self.directory.name
             if not len(self.files):
                 warnings.warn("warning : no edgelists found.")
-            else:
-                self.vertices = self._vertices()
-                self.graphs = self._graphs()
-                self.subjects = self._subjects()
+            self.vertices = self._vertices()
+            self.graphs = self._graphs()
+            self.subjects = self._subjects()
                 
-
-        # works because of falsiness of 0
-
     def __repr__(self):
         return f"NdmgDirectory obj at {str(self.directory)}"
 
     def _files(self, directory):
         """
-        From a directory containing edgelist files, 
+        From a directory or s3 bucket containing edgelist files, 
         return a list of edgelist files, 
         sorted.
 
@@ -71,7 +83,7 @@ class NdmgDirectory:
         
         Parameters
         ----------
-        path : directory of edgelist files.
+        path : directory of edgelist files or s3 bucket
         
         Returns
         -------
@@ -79,16 +91,49 @@ class NdmgDirectory:
             Sorted list of Paths to files in `path`.
         """
         output = []
-        correct_suffixes = [".ssv", ".csv"]
-        keywords = ["sub-", "ds_adj"]
-        correct_suffixes = {".ssv", ".csv"}
-        for dirname, _, files in os.walk(directory):
-            for filename in files:
-                right_suffix = Path(filename).suffix in correct_suffixes
-                right_filename = all(i in filename for i in keywords)
-                if right_suffix and right_filename:
-                    output.append(Path(dirname) / Path(filename))
+
+        # grab files from s3 instead of locally
+        if self.s3:
+            # TODO : Under Construction
+            # parse bucket and path from self.directory
+            # bucket, prefix = parse_path(self.directory)  # TODO
+            bucket, prefix = "ndmg-data", "NKI1/ndmg_0-1-2"  # TODO
+            dataset = prefix.split("/")[0]
+            local_dir = Path(f"/tmp/ndmg_s3_dir/{dataset}")
+            self.directory = local_dir
+            
+            # if our local_dir already has graph files in it, just use that
+            if local_dir.is_dir() and any(is_graph(x) for x in local_dir.iterdir()):
+                print(f"Local directory {local_dir} found. Getting graphs from there instead of s3.")
+                return list(filter_graph_files(local_dir.iterdir()))
+
+            print("Downloading objects from s3 ...")
+
+            # get generator of object names
+            unfiltered_objs = get_matching_s3_objects(bucket, prefix=prefix, suffix=CORRECT_SUFFIXES)
+            objs = filter_graph_files(unfiltered_objs) 
+            
+            # download each s3 graph and append local filepath to output
+            for obj in objs:
+                name = Path(obj).name
+                local = str(local_dir / Path(name))
+                print(f"Downloading {name} ...")
+                s3_download_graph(bucket, obj, local)
+                output.append(local)
+            
+            # update self.directory
+            self.directory = local_dir
+
+        else:
+            for dirname, _, files in os.walk(directory):
+                file_ends = list(filter_graph_files(files))
+                graphnames = [Path(dirname) / Path(graphname) for graphname in file_ends]
+                if all(graphname.exists for graphname in graphnames):
+                    output.extend(graphnames)
+                
         return sorted(output)
+
+
 
     @property
     def _nx_graphs(self):
@@ -149,9 +194,16 @@ class NdmgDirectory:
         directory : str or Path
             directory to send files to.
         """
+        if self.s3:
+            return
         if dst is None:
             dst = self.directory
         p = Path(dst).resolve()
         p.mkdir(parents=True, exist_ok=True)
         for filename in self.files:
             shutil.copy(filename, p)
+
+# for debugging
+n = NdmgDirectory('s3://ndmg-data/NKI1/ndmg_0-1-2/')
+pass
+# n = NdmgDirectory("/Users/alex/Dropbox/NeuroData/graphutils/tests/data/full_directory")

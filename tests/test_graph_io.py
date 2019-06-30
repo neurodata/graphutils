@@ -35,6 +35,9 @@ class TestNdmgDirectory:
             assert array.shape[1] == 3
         
 
+    def test_s3_works(self, S3):
+        pass
+
     def test_ordering(self, ND):
         # test if ordering of all properties correspond
         for i, _ in enumerate(ND.files):
@@ -57,10 +60,11 @@ class TestNdmgDirectory:
 
     def test_to_directory(self, ND):
         # TODO: use tmp_path_factory
-        p = Path("/tmp/testdir")
-        shutil.rmtree(p)
+        p = "/tmp/testdir"
+        if Path(p).exists():
+            shutil.rmtree(p)
         ND.to_directory(p)
 
         # test that original directory still exists unchanged
-        for new, old in zip(sorted(p.iterdir()), ND.files):
+        for new, old in zip(sorted(Path(p).iterdir()), ND.files):
             assert new.name == old.name
