@@ -20,10 +20,7 @@ from graspy.utils import import_edgelist
 from graphutils.utils import KEYWORDS, CORRECT_SUFFIXES
 from graphutils.utils import is_graph
 from graphutils.utils import filter_graph_files
-from graphutils.s3_utils import get_credentials
-from graphutils.s3_utils import get_matching_s3_objects
-from graphutils.s3_utils import s3_download_graph
-from graphutils.s3_utils import parse_path
+from graphutils.s3_utils import get_matching_s3_objects, get_credentials, s3_download_graph, parse_path
 
 
 class NdmgDirectory:
@@ -57,11 +54,11 @@ class NdmgDirectory:
             message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
             raise TypeError(message)
         else:
+            self.s3 = False
+            if str(directory).startswith("s3:"):
+                self.s3 = True
             self.delimiter = delimiter
             self.directory = Path(directory)
-            self.s3 = False
-            if str(self.directory).startswith("s3:"):
-                self.s3 = True
             self.files = self._files(directory)
             self.name = self.directory.name
             if not len(self.files):
@@ -94,10 +91,9 @@ class NdmgDirectory:
 
         # grab files from s3 instead of locally
         if self.s3:
-            # TODO : Under Construction
             # parse bucket and path from self.directory
-            # bucket, prefix = parse_path(self.directory)  # TODO
-            bucket, prefix = "ndmg-data", "NKI1/ndmg_0-1-2"  # TODO
+            # TODO: this breaks if the s3 directory structure changes
+            bucket, prefix = parse_path(directory)
             dataset = prefix.split("/")[0]
             local_dir = Path(f"/tmp/ndmg_s3_dir/{dataset}")
             self.directory = local_dir
@@ -107,7 +103,7 @@ class NdmgDirectory:
                 print(f"Local directory {local_dir} found. Getting graphs from there instead of s3.")
                 return list(filter_graph_files(local_dir.iterdir()))
 
-            print("Downloading objects from s3 ...")
+            print(f"Downloading objects from s3 into {local_dir}...")
 
             # get generator of object names
             unfiltered_objs = get_matching_s3_objects(bucket, prefix=prefix, suffix=CORRECT_SUFFIXES)
@@ -202,8 +198,3 @@ class NdmgDirectory:
         p.mkdir(parents=True, exist_ok=True)
         for filename in self.files:
             shutil.copy(filename, p)
-
-# for debugging
-n = NdmgDirectory('s3://ndmg-data/NKI1/ndmg_0-1-2/')
-pass
-# n = NdmgDirectory("/Users/alex/Dropbox/NeuroData/graphutils/tests/data/full_directory")
