@@ -26,9 +26,13 @@ def get_credentials():
         raise AttributeError("No AWS credentials found.")
     return (ACCESS, SECRET)
 
-def parse_path(path):
+def parse_path(s3_datapath):
     """ return bucket and prefix from full path. """
-    pass
+    bucket_path = str(s3_datapath).split('//')[1]
+    parts = bucket_path.split('/')
+    bucket = parts[0]
+    prefix = '/'.join(parts[1:4])
+    return bucket, prefix
 
 def s3_client():
     ACCESS, SECRET = get_credentials()
@@ -61,6 +65,7 @@ def get_matching_s3_objects(bucket, prefix='', suffix=''):
         try:
             contents = resp['Contents']
         except KeyError:
+            print("No contents found.")
             return
 
         for obj in contents:
@@ -86,8 +91,3 @@ def s3_download_graph(bucket, prefix, local):
         parent.mkdir(parents=True, exist_ok=True)
     s3 = s3_client()
     s3.download_file(bucket, prefix, local)
-
-#%%
-# correct_suffixes = (".ssv", ".csv")
-# test_obj = 'HNU1/ndmg_0-1-2/sub-0025427/ses-1/dwi/roi-connectomes/desikan_space-MNI152NLin6_res-2x2x2/sub-0025427_ses-1_dwi_desikan_space-MNI152NLin6_res-2x2x2_measure-spatial-ds_adj.ssv'
-# objs = get_matching_s3_objects("ndmg-data", prefix="HNU1/ndmg_0-1-2", suffix=correct_suffixes)
