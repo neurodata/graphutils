@@ -195,6 +195,3 @@ class NdmgDirectory:
         p.mkdir(parents=True, exist_ok=True)
         for filename in self.files:
             shutil.copy(filename, p)
-
-n = NdmgDirectory("/Users/alex/Dropbox/NeuroData/graphutils/tests/data/full_directory")
-n.to_directory()
