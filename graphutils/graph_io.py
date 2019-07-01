@@ -53,19 +53,18 @@ class NdmgDirectory:
         if not isinstance(directory, (str, Path)):
             message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
             raise TypeError(message)
-        else:
-            self.s3 = False
-            if str(directory).startswith("s3:"):
-                self.s3 = True
-            self.delimiter = delimiter
-            self.directory = Path(directory)
-            self.files = self._files(directory)
-            self.name = self.directory.name
-            if not len(self.files):
-                warnings.warn("warning : no edgelists found.")
-            self.vertices = self._vertices()
-            self.graphs = self._graphs()
-            self.subjects = self._subjects()
+        self.s3 = False
+        if str(directory).startswith("s3:"):
+            self.s3 = True
+        self.delimiter = delimiter
+        self.directory = Path(directory)
+        self.files = self._files(directory)
+        self.name = self.directory.name
+        if not len(self.files):
+            warnings.warn("warning : no edgelists found.")
+        self.vertices = self._vertices()
+        self.graphs = self._graphs()
+        self.subjects = self._subjects()
                 
     def __repr__(self):
         return f"NdmgDirectory obj at {str(self.directory)}"
