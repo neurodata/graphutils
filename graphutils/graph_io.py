@@ -189,8 +189,6 @@ class NdmgDirectory:
         directory : str or Path
             directory to send files to.
         """
-        if self.s3:
-            return
         if dst is None:
             dst = self.directory
         p = Path(dst).resolve()
