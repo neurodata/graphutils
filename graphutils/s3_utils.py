@@ -1,14 +1,10 @@
 #%%
 import os
-import sys
-import subprocess
 import re
 from configparser import ConfigParser
-from collections import OrderedDict
 from pathlib import Path
 
 import boto3
-import botocore
 
 
 def get_credentials():

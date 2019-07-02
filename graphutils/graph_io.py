@@ -1,26 +1,19 @@
 #%%
-"""graph_io: input/output utilities for graphs.
+"""graph_io: input/output utilities for ndmg outputs.
 """
 from pathlib import Path
 import shutil
 import os
 import re
-import glob
-from functools import reduce, partial
+from functools import reduce
 import warnings
-import subprocess
-from configparser import ConfigParser
-from tempfile import TemporaryDirectory
 
-import boto3
 import networkx as nx
 import numpy as np
 from graspy.utils import import_edgelist
 
-from graphutils.utils import KEYWORDS, CORRECT_SUFFIXES
-from graphutils.utils import is_graph
-from graphutils.utils import filter_graph_files
-from graphutils.s3_utils import get_matching_s3_objects, get_credentials, s3_download_graph, parse_path
+from .utils import is_graph, filter_graph_files
+from .s3_utils import get_matching_s3_objects, s3_download_graph, parse_path
 
 
 class NdmgDirectory:
