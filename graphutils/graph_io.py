@@ -1,5 +1,5 @@
 #%%
-"""graph_io: input/output utilities for ndmg outputs.
+"""graph_io: input/output utilities for graphs.
 """
 from pathlib import Path
 import shutil
@@ -12,8 +12,10 @@ import networkx as nx
 import numpy as np
 from graspy.utils import import_edgelist
 
-from .utils import is_graph, filter_graph_files
-from .s3_utils import get_matching_s3_objects, s3_download_graph, parse_path
+from graphutils.utils import CORRECT_SUFFIXES
+from graphutils.utils import is_graph
+from graphutils.utils import filter_graph_files
+from graphutils.s3_utils import get_matching_s3_objects, get_credentials, s3_download_graph, parse_path
 
 
 class NdmgDirectory:
@@ -87,7 +89,7 @@ class NdmgDirectory:
             # TODO: this breaks if the s3 directory structure changes
             bucket, prefix = parse_path(directory)
             dataset = prefix.split("/")[0]
-            local_dir = Path(f"/tmp/ndmg_s3_dir/{dataset}")
+            local_dir = Path.home() / Path(f".ndmg_s3_dir/{dataset}")
             self.directory = local_dir
             
             # if our local_dir already has graph files in it, just use that
@@ -188,3 +190,22 @@ class NdmgDirectory:
         p.mkdir(parents=True, exist_ok=True)
         for filename in self.files:
             shutil.copy(filename, p)
+
+
+def url_to_ndmg_dir(urls):
+    if not isinstance(urls, list):
+        raise TypeError("urls must be a list of URLs.")
+    
+    return_value = {}
+    for url in urls:
+        val = NdmgDirectory(url)
+        key = val.name
+        return_value[key] = val
+    
+    return return_value
+
+#%%
+a = url_to_ndmg_dir(["s3://ndmg-data/NKI1/ndmg_0-1-2/", "s3://ndmg-data/HNU1/ndmg_0-1-2/"])
+
+#%%
+a["NKI1"].subjects
