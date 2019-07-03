@@ -19,12 +19,22 @@ from graphutils.s3_utils import get_matching_s3_objects, get_credentials, s3_dow
 
 
 class NdmgDirectory:
-    """Class that contains utility methods for use on a `ndmg` output directory.
-       Contains derived properties, and useful methods.
+
+    """
+    Contains methods for use on a `ndmg` output directory.
+    Central object of this package.
+
+    Parameters
+    ----------
+    directory : str
+        filepath or s3 url to the directory containing graph outputs.
+        if s3, input should be `s3://bucket-prefix/`.
+        if filepath, input should be the absolute path.
+    delimiter : str
+        The delimiter within each edgelist output file.
 
     Attributes
     ----------
-
     delimiter : str
         The delimiter used in edgelists.
     directory : Path
@@ -193,6 +203,27 @@ class NdmgDirectory:
 
 
 def url_to_ndmg_dir(urls):
+    """
+    take a list of urls or filepaths,
+    get a dict of NdmgDirectory objects
+    
+    Parameters
+    ----------
+    urls : list
+        list of urls or filepaths. 
+        Each element should be of the same form as the input to a `NdmgDirectory` object.
+    
+    Returns
+    -------
+    dict
+        dict of {dataset:NdmgDirectory} objects.
+    
+    Raises
+    ------
+    TypeError
+        Raises error if input is not a list.
+    """
+
     if not isinstance(urls, list):
         raise TypeError("urls must be a list of URLs.")
     

@@ -8,6 +8,19 @@ import boto3
 
 
 def get_credentials():
+    """
+    Get aws credentials from either environment or aws config.
+    
+    Returns
+    -------
+    tuple
+         aws credentials.
+    
+    Raises
+    ------
+    AttributeError
+        Occurs if credentials don't exist.
+    """
     try:
         config = ConfigParser()
         config.read(os.getenv("HOME") + "/.aws/credentials")
@@ -23,7 +36,20 @@ def get_credentials():
     return (ACCESS, SECRET)
 
 def parse_path(s3_datapath):
-    """ return bucket and prefix from full path. """
+    """
+    Return bucket and prefix from full s3 path.
+    
+    Parameters
+    ----------
+    s3_datapath : str
+        path to a bucket. 
+        Should be of the form s3://bucket/prefix/.
+    
+    Returns
+    -------
+    tuple
+        bucket and prefix.
+    """
     bucket_path = str(s3_datapath).split('//')[1]
     parts = bucket_path.split('/')
     bucket = parts[0]
@@ -31,18 +57,30 @@ def parse_path(s3_datapath):
     return bucket, prefix
 
 def s3_client():
+    """
+    create an s3 client.
+    
+    Returns
+    -------
+    boto3.client
+        client with proper credentials.
+    """
+
     ACCESS, SECRET = get_credentials()
     return boto3.client('s3', aws_access_key_id=ACCESS, aws_secret_access_key=SECRET)
 
 def get_matching_s3_objects(bucket, prefix='', suffix=''):
     """
     Generate objects in an S3 bucket.
-
-    :param bucket: Name of the S3 bucket.
-    :param prefix: Only fetch objects whose key starts with
-        this prefix (optional).
-    :param suffix: Only fetch objects whose keys end with
-        this suffix (optional).
+    
+    Parameters
+    ----------
+    bucket : str
+        Name of the s3 bucket.
+    prefix : str, optional
+        Only fetch objects whose key starts with this prefix, by default ''
+    suffix : str, optional
+        Only fetch objects whose keys end with this suffix, by default ''
     """
     s3 = s3_client()
     kwargs = {'Bucket': bucket}
@@ -79,8 +117,16 @@ def get_matching_s3_objects(bucket, prefix='', suffix=''):
 
 def s3_download_graph(bucket, prefix, local):
     """
-    given an s3 directory,
-    copies in that directory to local.
+    Given an s3 directory, copies in that directory to local.
+    
+    Parameters
+    ----------
+    bucket : str
+        s3 bucket name.
+    prefix : 
+        location of s3 object.
+    local : str
+        s3 object download location.
     """
     parent = Path(local).parent
     if not parent.is_dir():
