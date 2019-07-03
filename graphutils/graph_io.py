@@ -203,9 +203,3 @@ def url_to_ndmg_dir(urls):
         return_value[key] = val
     
     return return_value
-
-#%%
-a = url_to_ndmg_dir(["s3://ndmg-data/NKI1/ndmg_0-1-2/", "s3://ndmg-data/HNU1/ndmg_0-1-2/"])
-
-#%%
-a["NKI1"].subjects
