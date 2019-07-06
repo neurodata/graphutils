@@ -123,7 +123,7 @@ class NdmgDirectory:
         if is_dir:
             has_graphs = filter_graph_files(
                 local_dir.iterdir(), return_bool=True, **kwargs
-
+            )
         # Check if has_graphs just got toggled.
         if has_graphs:
             print(f"Local path {local_dir} found. Using that.")
@@ -170,14 +170,14 @@ class NdmgDirectory:
 
 
 class NdmgGraphs(NdmgDirectory):
-    """
+
+    """    
     NdmgDirectory which contains graph objects.
 
     Parameters
     ----------
     delimiter : str
         The delimiter used in edgelists    
-
 
     Attributes
     ----------
@@ -287,4 +287,3 @@ def url_to_ndmg_dir(urls):
         return_value[key] = val
 
     return return_value
-
