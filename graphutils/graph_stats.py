@@ -66,42 +66,6 @@ class NdmgStats(NdmgGraphs):
         else:
             raise ValueError("Dimensionality of input must be 3.")
 
-    def pass_to_ranks(self, on="all"):
-        """
-        pass-to-ranks method, to call on `self.graphs` or `self.X`.
-        When called, modifies one or both of these properties,
-        depending on parameters.
-
-        Assigns ranks to all non-zero edges, settling ties using 
-        the average. Ranks are then scaled by 
-        :math:`\frac{rank(\text{non-zero edges})}{\text{total non-zero edges} + 1}`.
-
-        Parameters
-        ----------
-        on : str, "all", "X", or "graphs"
-            if all, call pass to ranks on `self.X` and `self.graphs`
-            if X, call pass to ranks on `self.X`
-            if graphs, call pass to ranks on `self.graphs`.
-        """
-
-        def PTR_functionality(graphs):
-            non_zeros = graphs[graphs != 0]
-            rank = rankdata(non_zeros)
-            normalizer = rank.shape[0]
-            rank = rank / (normalizer + 1)
-            graphs[graphs != 0] = rank
-            return graphs
-
-        if on == "X":
-            self.X = PTR_functionality(self.X)
-        elif on == "graphs":
-            self.graphs = PTR_functionality(self.X)
-        elif on == "all":
-            self.X = PTR_functionality(self.X)
-            self.graphs = PTR_functionality(self.graphs)
-        else:
-            raise ValueError("`on` must be all, X, or graphs.")
-
     def save_X_and_Y(self, output_directory="cwd"):
         """
         Save `self.X` and `self.subjects` into an output directory.
@@ -130,8 +94,45 @@ class NdmgStats(NdmgGraphs):
         name = namedtuple("name", ["X", "Y"])
         return name(X_name, Y_name)
 
+    def pass_to_ranks(self, on="all"):
+        """
+        pass-to-ranks method, to call on `self.graphs` or `self.X`.
+        When called, modifies one or both of these properties,
+        depending on parameters.
+
+        Assigns ranks to all non-zero edges, settling ties using 
+        the average. Ranks are then scaled by 
+        :math:`\frac{rank(\text{non-zero edges})}{\text{total non-zero edges} + 1}`.
+
+        Parameters
+        ----------
+        on : str, "all", "X", or "graphs"
+            if all, call pass to ranks on `self.X` and `self.graphs`
+            if X, call pass to ranks on `self.X`
+            if graphs, call pass to ranks on `self.graphs`.
+        """
+
+        def PTR_functionality(graphs):
+            old = graphs
+            non_zeros = graphs[graphs != 0]
+            rank = rankdata(non_zeros)
+            normalizer = rank.shape[0]
+            rank = rank / (normalizer + 1)
+            graphs[graphs != 0] = rank
+            return graphs
+
+        if on == "X":
+            self.X = PTR_functionality(self.X)
+        elif on == "graphs":
+            self.graphs = PTR_functionality(self.X)
+        elif on == "all":
+            self.X = PTR_functionality(self.X)
+            self.graphs = PTR_functionality(self.graphs)
+        else:
+            raise ValueError("`on` must be all, X, or graphs.")
+
     @add_doc(discr_stat.__doc__)
-    def discriminability(self, **kwargs):
+    def discriminability(self, PTR=True, on="all", **kwargs):
         """
         Attach discriminability functionality to the object.
         See `discr_stat` for full documentation.
@@ -141,5 +142,6 @@ class NdmgStats(NdmgGraphs):
         stat : float
             Discriminability statistic.
         """
+        if PTR:
+            self.pass_to_ranks(on=on)
         return discr_stat(self.X, self.Y, **kwargs)
-
