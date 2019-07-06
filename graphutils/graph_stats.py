@@ -120,6 +120,8 @@ class NdmgStats(NdmgGraphs):
             graphs[graphs != 0] = rank
             return graphs
 
+        # TODO : This should not change state of the object.
+        #        That was a bad idea.
         if on == "X":
             self.X = PTR_functionality(self.X)
         elif on == "graphs":
