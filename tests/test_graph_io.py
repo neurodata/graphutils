@@ -8,11 +8,20 @@ import numpy as np
 import networkx as nx
 from graphutils.graph_io import NdmgDirectory
 
-class TestNdmgDirectory:
 
+class TestNdmgDirectory:
     def test_object_has_attributes(self, ND):
         assert all(
-            hasattr(ND, attr) for attr in ["delimiter", "directory", "name", "files", "vertices", "graphs", "subjects"]
+            hasattr(ND, attr)
+            for attr in [
+                "delimiter",
+                "directory",
+                "name",
+                "files",
+                "vertices",
+                "graphs",
+                "subjects",
+            ]
         )
 
         assert ND.directory, "directory doesn't exist"
@@ -21,22 +30,19 @@ class TestNdmgDirectory:
         assert isinstance(ND.graphs, np.ndarray), "graphs doesn't exist"
         assert isinstance(ND.vertices, np.ndarray), "graphs doesn't exist"
 
-
     def test_files_has_data(self, ND):
         # check if there are files
         assert len(ND.files) != 0, f"{dir(ND)}"
 
         # check if those files exist locally
-        assert all([filename.exists() for filename in ND.files]), "Filenames do not exist."
+        assert all(
+            [filename.exists() for filename in ND.files]
+        ), "Filenames do not exist."
 
         # check if all files have data in them
         for filename in ND.files:
             array = np.genfromtxt(str(filename), delimiter=" ")
             assert array.shape[1] == 3
-        
-
-    def test_s3_works(self, S3):
-        pass
 
     def test_ordering(self, ND):
         # test if ordering of all properties correspond
@@ -68,3 +74,6 @@ class TestNdmgDirectory:
         # test that original directory still exists unchanged
         for new, old in zip(sorted(Path(p).iterdir()), ND.files):
             assert new.name == old.name
+
+    # TODO : test to check atlas pulls from the right thing.
+    # TODO : test to check s3 directory pulling.

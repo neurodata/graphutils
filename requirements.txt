@@ -2,3 +2,4 @@ ipython
 pytest
 pytest-datadir
 boto3
+sklearn
