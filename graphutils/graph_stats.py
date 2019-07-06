@@ -1,3 +1,4 @@
+#%%
 """graph_stats : functionality for computing statistics on ndmg directories.
 """
 import warnings
@@ -6,9 +7,12 @@ from pathlib import Path
 
 import numpy as np
 from scipy.stats import rankdata
+from sklearn.metrics import euclidean_distances
+from sklearn.utils import check_X_y
 from graspy.utils import pass_to_ranks as PTR
 
 from .graph_io import NdmgDirectory
+from .utils import add_doc, discr_stat
 
 
 class NdmgDiscrim(NdmgDirectory):
@@ -27,9 +31,11 @@ class NdmgDiscrim(NdmgDirectory):
     save_X_and_Y : returns None
         Saves `self.X` and `self.Y` into a directory.
     """
+
     def __init__(self, directory, delimiter=" "):
         super().__init__(directory, delimiter)
         self.X = self._X()
+        self.Y = self.subjects
 
     def __repr__(self):
         return f"NdmgDiscrim obj at {str(self.directory)}"
@@ -126,6 +132,16 @@ class NdmgDiscrim(NdmgDirectory):
         name = namedtuple("name", ["X", "Y"])
         return name(X_name, Y_name)
 
-    def discriminability(self):
-        # TODO
-        pass
+    @add_doc(discr_stat.__doc__)
+    def discriminability(self, **kwargs):
+        """
+        Attach discriminability functionality to the object.
+        See `discr_stat` for full documentation.
+        
+        Returns
+        -------
+        stat : float
+            Discriminability statistic.
+        """
+        return discr_stat(self.X, self.Y, **kwargs)
+

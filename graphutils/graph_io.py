@@ -15,7 +15,12 @@ from graspy.utils import import_edgelist
 from graphutils.utils import CORRECT_SUFFIXES
 from graphutils.utils import is_graph
 from graphutils.utils import filter_graph_files
-from graphutils.s3_utils import get_matching_s3_objects, get_credentials, s3_download_graph, parse_path
+from graphutils.s3_utils import (
+    get_matching_s3_objects,
+    get_credentials,
+    s3_download_graph,
+    parse_path,
+)
 
 
 class NdmgDirectory:
@@ -70,7 +75,7 @@ class NdmgDirectory:
         self.vertices = self._vertices()
         self.graphs = self._graphs()
         self.subjects = self._subjects()
-                
+
     def __repr__(self):
         return f"NdmgDirectory obj at {str(self.directory)}"
 
@@ -101,18 +106,23 @@ class NdmgDirectory:
             dataset = prefix.split("/")[0]
             local_dir = Path.home() / Path(f".ndmg_s3_dir/{dataset}")
             self.directory = local_dir
-            
+
             # if our local_dir already has graph files in it, just use that
             if local_dir.is_dir() and any(is_graph(x) for x in local_dir.iterdir()):
-                print(f"Local directory {local_dir} found. Getting graphs from there instead of s3.")
-                return list(filter_graph_files(local_dir.iterdir()))
+                print(
+                    f"Local directory {local_dir} found. Getting graphs from there instead of s3."
+                )
+                graphs = filter_graph_files(local_dir.iterdir())
+                return list(graphs)
 
             print(f"Downloading objects from s3 into {local_dir}...")
 
             # get generator of object names
-            unfiltered_objs = get_matching_s3_objects(bucket, prefix=prefix, suffix=CORRECT_SUFFIXES)
-            objs = filter_graph_files(unfiltered_objs) 
-            
+            unfiltered_objs = get_matching_s3_objects(
+                bucket, prefix=prefix, suffix=CORRECT_SUFFIXES
+            )
+            objs = filter_graph_files(unfiltered_objs)
+
             # download each s3 graph and append local filepath to output
             for obj in objs:
                 name = Path(obj).name
@@ -120,20 +130,20 @@ class NdmgDirectory:
                 print(f"Downloading {name} ...")
                 s3_download_graph(bucket, obj, local)
                 output.append(local)
-            
+
             # update self.directory
             self.directory = local_dir
 
         else:
             for dirname, _, files in os.walk(directory):
                 file_ends = list(filter_graph_files(files))
-                graphnames = [Path(dirname) / Path(graphname) for graphname in file_ends]
+                graphnames = [
+                    Path(dirname) / Path(graphname) for graphname in file_ends
+                ]
                 if all(graphname.exists for graphname in graphnames):
                     output.extend(graphnames)
-                
+
         return sorted(output)
-
-
 
     @property
     def _nx_graphs(self):
@@ -171,7 +181,7 @@ class NdmgDirectory:
         if not isinstance(list_of_arrays, list):
             list_of_arrays = [list_of_arrays]
         return np.atleast_3d(list_of_arrays)
-    
+
     def _subjects(self):
         """
         Get subject IDs
@@ -224,13 +234,15 @@ def url_to_ndmg_dir(urls):
         Raises error if input is not a list.
     """
 
+    if isinstance(urls, str):
+        urls = [urls]
     if not isinstance(urls, list):
         raise TypeError("urls must be a list of URLs.")
-    
+
     return_value = {}
     for url in urls:
         val = NdmgDirectory(url)
         key = val.name
         return_value[key] = val
-    
+
     return return_value
