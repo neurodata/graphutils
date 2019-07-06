@@ -9,11 +9,11 @@ import numpy as np
 from scipy.stats import rankdata
 from graspy.utils import pass_to_ranks as PTR
 
-from .graph_io import NdmgDirectory
+from .graph_io import NdmgGraphs
 from .utils import add_doc, discr_stat
 
 
-class NdmgDiscrim(NdmgDirectory):
+class NdmgDiscrim(NdmgGraphs):
     """Compute discriminability from a ndmg directory.
 
     Parameters

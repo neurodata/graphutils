@@ -5,8 +5,7 @@ from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_X_y
 import numpy as np
 
-KEYWORDS = ["sub-", "ds_adj"]
-CORRECT_SUFFIXES = [".ssv", ".csv"]
+KEYWORDS = ["sub", "ses"]
 
 
 def is_graph(filename, atlas="", suffix=""):
@@ -31,14 +30,13 @@ def is_graph(filename, atlas="", suffix=""):
     if suffix:
         if not suffix.startswith("."):
             suffix = "." + suffix
-        CORRECT_SUFFIXES.append(suffix)
 
-    correct_suffix = Path(filename).suffix in CORRECT_SUFFIXES
+    correct_suffix = Path(filename).suffix == suffix
     correct_filename = all(i in str(filename) for i in KEYWORDS)
     return correct_suffix and correct_filename
 
 
-def filter_graph_files(file_list, **kwargs):
+def filter_graph_files(file_list, return_bool=False, **kwargs):
     """
     Generator. 
     Check if each file in `file_list` is a ndmg edgelist,
@@ -46,9 +44,14 @@ def filter_graph_files(file_list, **kwargs):
     
     Parameters
     ----------
+    return_bool : bool
+        if True, return a boolearn that says whether graph files exist in the directory.
     file_list : iterator
         iterator of inputs to the `is_graph` function.
     """
+    if return_bool:
+        has_graphs = any(is_graph(x, **kwargs) for x in file_list)
+        return has_graphs
     for filename in file_list:
         if is_graph(filename, **kwargs):
             yield (filename)
