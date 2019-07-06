@@ -13,7 +13,7 @@ from .graph_io import NdmgGraphs
 from .utils import add_doc, discr_stat
 
 
-class NdmgDiscrim(NdmgGraphs):
+class NdmgStats(NdmgGraphs):
     """Compute discriminability from a ndmg directory.
 
     Parameters
