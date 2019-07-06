@@ -23,15 +23,41 @@ from graphutils.s3_utils import (
 
 
 class NdmgDirectory:
-    def __init__(self, directory, delimiter=" ", atlas="", suffix="ssv"):
+    """
+    Contains methods for use on a `ndmg` output directory.
+    Top-level object of this package.
+
+    Parameters
+    ----------
+    directory : str
+        filepath or s3 url to the directory containing graph outputs.
+        if s3, input should be `s3://bucket-prefix/`.
+        if filepath, input should be the absolute path.
+    directory : Path
+        Path object to the directory passed to NdmgGraphs.
+        Takes either an s3 bucket or a local directory string as input.
+    atlas : str
+        atlas to get graph files of.
+    delimiter : str
+        delimiter in graph files.
+
+    Attributes
+    ----------
+    files : list, sorted
+        List of path objects corresponding to each edgelist.
+    name : str
+        Base name of directory.
+    """
+
+    def __init__(self, directory, atlas="", suffix="ssv", delimiter=" "):
         if not isinstance(directory, (str, Path)):
             message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
             raise TypeError(message)
         self.s3 = False
         self.directory = Path(directory)
+        self.delimiter = delimiter
         if str(directory).startswith("s3:"):
             self.s3 = True
-        self.delimiter = delimiter
         self.atlas = atlas
         self.suffix = suffix
         self.files = self._files(directory)
@@ -98,10 +124,9 @@ class NdmgDirectory:
             has_graphs = filter_graph_files(
                 local_dir.iterdir(), return_bool=True, **kwargs
             )
+        # Check if has_graphs just got toggled.
         if has_graphs:
-            print(
-                f"Local path {local_dir} found. Getting graphs from there instead of s3."
-            )
+            print(f"Local path {local_dir} found. Using that.")
             graphs = filter_graph_files(local_dir.iterdir(), **kwargs)
             return list(graphs)
 
@@ -146,32 +171,18 @@ class NdmgDirectory:
 
 class NdmgGraphs(NdmgDirectory):
 
-    """
-    Contains methods for use on a `ndmg` output directory.
-    Central object of this package.
+    """    
+    NdmgDirectory which contains graph objects.
 
     Parameters
     ----------
-    directory : str
-        filepath or s3 url to the directory containing graph outputs.
-        if s3, input should be `s3://bucket-prefix/`.
-        if filepath, input should be the absolute path.
     delimiter : str
-        The delimiter within each edgelist output file.
+        The delimiter used in edgelists    
 
     Attributes
     ----------
     delimiter : str
-        The delimiter used in edgelists.
-    directory : Path
-        Path object to the directory passed to NdmgGraphs.
-        Takes either an s3 bucket or a local directory string as input.
-    atlas : str
-        atlas to get graph files of.
-    files : list, sorted
-        List of path objects corresponding to each edgelist.
-    name : str
-        Base name of directory.
+        The delimiter used in edgelists    
     vertices : np.ndarray
         sorted union of all nodes across edgelists.
     graphs : np.ndarray, shape (n, v, v), 3D
@@ -262,11 +273,13 @@ def url_to_ndmg_dir(urls):
         Raises error if input is not a list.
     """
 
+    # checks for type
     if isinstance(urls, str):
         urls = [urls]
     if not isinstance(urls, list):
         raise TypeError("urls must be a list of URLs.")
 
+    # appends each object
     return_value = {}
     for url in urls:
         val = NdmgGraphs(url)
