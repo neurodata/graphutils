@@ -45,10 +45,12 @@ class NdmgDirectory:
     directory : Path
         Path object to the directory passed to NdmgDirectory.
         Takes either an s3 bucket or a local directory string as input.
-    name : str
-        Base name of directory.
+    atlas : str
+        atlas to get graph files of.
     files : list, sorted
         List of path objects corresponding to each edgelist.
+    name : str
+        Base name of directory.
     vertices : np.ndarray
         sorted union of all nodes across edgelists.
     graphs : np.ndarray, shape (n, v, v), 3D
@@ -59,15 +61,17 @@ class NdmgDirectory:
         Y[0] corresponds to files[0].
     """
 
-    def __init__(self, directory, delimiter=" "):
+    def __init__(self, directory, delimiter=" ", atlas="", suffix="ssv"):
         if not isinstance(directory, (str, Path)):
             message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
             raise TypeError(message)
         self.s3 = False
         if str(directory).startswith("s3:"):
             self.s3 = True
-        self.delimiter = delimiter
         self.directory = Path(directory)
+        self.delimiter = delimiter
+        self.atlas = atlas
+        self.suffix = suffix
         self.files = self._files(directory)
         self.name = self.directory.name
         if not len(self.files):
@@ -112,7 +116,7 @@ class NdmgDirectory:
                 print(
                     f"Local directory {local_dir} found. Getting graphs from there instead of s3."
                 )
-                graphs = filter_graph_files(local_dir.iterdir())
+                graphs = filter_graph_files(local_dir.iterdir(), atlas=self.atlas)
                 return list(graphs)
 
             print(f"Downloading objects from s3 into {local_dir}...")

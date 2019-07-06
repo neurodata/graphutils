@@ -5,11 +5,11 @@ from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_X_y
 import numpy as np
 
-KEYWORDS = ("sub-", "ds_adj")
-CORRECT_SUFFIXES = (".ssv", ".csv")
+KEYWORDS = ["sub-", "ds_adj"]
+CORRECT_SUFFIXES = [".ssv", ".csv"]
 
 
-def is_graph(filename):
+def is_graph(filename, atlas="", suffix=""):
     """
     Check if `filename` is a ndmg graph file.
     
@@ -24,16 +24,25 @@ def is_graph(filename):
         True if the file has the ndmg naming convention, else False.
     """
 
+    if atlas:
+        atlas = atlas.lower()
+        KEYWORDS.append(atlas)
+
+    if suffix:
+        if not suffix.startswith("."):
+            suffix = "." + suffix
+        CORRECT_SUFFIXES.append(suffix)
+
     correct_suffix = Path(filename).suffix in CORRECT_SUFFIXES
     correct_filename = all(i in str(filename) for i in KEYWORDS)
     return correct_suffix and correct_filename
 
 
-def filter_graph_files(file_list):
+def filter_graph_files(file_list, **kwargs):
     """
     Generator. 
-    Checks if each file in `file_list` is a ndmg edgelist,
-    yields it if it is.
+    Check if each file in `file_list` is a ndmg edgelist,
+    yield it if it is.
     
     Parameters
     ----------
@@ -41,30 +50,8 @@ def filter_graph_files(file_list):
         iterator of inputs to the `is_graph` function.
     """
     for filename in file_list:
-        if is_graph(filename):
+        if is_graph(filename, **kwargs):
             yield (filename)
-
-
-def add_doc(value):
-    """
-    Decorator for changing docstring of a function.
-    
-    Parameters
-    ----------
-    value : str
-        docstring to change to.
-    
-    Returns
-    -------
-    func
-        wrapper function.
-    """
-
-    def _doc(func):
-        func.__doc__ = value
-        return func
-
-    return _doc
 
 
 def discr_stat(
@@ -166,3 +153,25 @@ def _discr_rdf(dissimilarities, labels):
         out[i, : len(rdf)] = rdf
 
     return out
+
+
+def add_doc(value):
+    """
+    Decorator for changing docstring of a function.
+    
+    Parameters
+    ----------
+    value : str
+        docstring to change to.
+    
+    Returns
+    -------
+    func
+        wrapper function.
+    """
+
+    def _doc(func):
+        func.__doc__ = value
+        return func
+
+    return _doc

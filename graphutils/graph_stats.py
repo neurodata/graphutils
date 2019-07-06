@@ -7,8 +7,6 @@ from pathlib import Path
 
 import numpy as np
 from scipy.stats import rankdata
-from sklearn.metrics import euclidean_distances
-from sklearn.utils import check_X_y
 from graspy.utils import pass_to_ranks as PTR
 
 from .graph_io import NdmgDirectory
@@ -32,8 +30,8 @@ class NdmgDiscrim(NdmgDirectory):
         Saves `self.X` and `self.Y` into a directory.
     """
 
-    def __init__(self, directory, delimiter=" "):
-        super().__init__(directory, delimiter)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.X = self._X()
         self.Y = self.subjects
 

@@ -74,3 +74,6 @@ class TestNdmgDirectory:
         # test that original directory still exists unchanged
         for new, old in zip(sorted(Path(p).iterdir()), ND.files):
             assert new.name == old.name
+
+    # TODO : test to check atlas pulls from the right thing.
+    # TODO : test to check s3 directory pulling.
