@@ -6,10 +6,10 @@ import re
 import pytest
 import numpy as np
 import networkx as nx
-from graphutils.graph_io import NdmgDirectory
+from graphutils.graph_io import NdmgGraphs, NdmgDirectory
 
 
-class TestNdmgDirectory:
+class TestNdmgGraphs:
     def test_object_has_attributes(self, ND):
         assert all(
             hasattr(ND, attr)
