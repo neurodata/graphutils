@@ -36,7 +36,7 @@ class NdmgStats(NdmgGraphs):
         self.Y = self.subjects
 
     def __repr__(self):
-        return f"NdmgDiscrim obj at {str(self.directory)}"
+        return f"NdmgStats obj at {str(self.directory)}"
 
     def _X(self):
         """
@@ -146,3 +146,4 @@ class NdmgStats(NdmgGraphs):
         if PTR:
             self.pass_to_ranks(on=on)
         return discr_stat(self.X, self.Y, **kwargs)
+

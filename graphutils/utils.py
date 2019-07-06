@@ -122,6 +122,7 @@ def discr_stat(
 def _discr_rdf(dissimilarities, labels):
     """
     A function for computing the reliability density function of a dataset.
+
     Parameters
     ----------
     dissimilarities : array, shape (n_samples, n_features) or (n_samples, n_samples)
@@ -129,6 +130,7 @@ def _discr_rdf(dissimilarities, labels):
         dissimilarity matrix.
     labels : 1d-array, shape (n_samples)
         Input labels.
+
     Returns
     -------
     out : array, shape (n_samples, max{len(id)})
