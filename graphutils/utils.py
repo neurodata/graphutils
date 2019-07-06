@@ -158,7 +158,7 @@ def _discr_rdf(dissimilarities, labels):
     return out
 
 
-def add_doc(value):
+def replace_doc(value):
     """
     Decorator for changing docstring of a function.
     

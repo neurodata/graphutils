@@ -10,7 +10,7 @@ from scipy.stats import rankdata
 from graspy.utils import pass_to_ranks as PTR
 
 from .graph_io import NdmgGraphs
-from .utils import add_doc, discr_stat
+from .utils import replace_doc, discr_stat
 
 
 class NdmgStats(NdmgGraphs):
@@ -113,7 +113,6 @@ class NdmgStats(NdmgGraphs):
         """
 
         def PTR_functionality(graphs):
-            old = graphs
             non_zeros = graphs[graphs != 0]
             rank = rankdata(non_zeros)
             normalizer = rank.shape[0]
@@ -131,7 +130,7 @@ class NdmgStats(NdmgGraphs):
         else:
             raise ValueError("`on` must be all, X, or graphs.")
 
-    @add_doc(discr_stat.__doc__)
+    @replace_doc(discr_stat.__doc__)
     def discriminability(self, PTR=True, on="all", **kwargs):
         """
         Attach discriminability functionality to the object.
