@@ -28,6 +28,8 @@ class NdmgStats(NdmgGraphs):
         calls pass to ranks on `self.graphs`, `self.X`, or both.
     save_X_and_Y : returns None
         Saves `self.X` and `self.Y` into a directory.
+    discriminability : return float
+        discriminability statistic for this dataset
     """
 
     def __init__(self, *args, **kwargs):

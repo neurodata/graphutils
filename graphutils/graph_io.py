@@ -47,6 +47,8 @@ class NdmgDirectory:
         List of path objects corresponding to each edgelist.
     name : str
         Base name of directory.
+    to_directory : func
+        Send all graph files to a directory of your choosing
     """
 
     def __init__(self, directory, atlas="", suffix="ssv", delimiter=" "):

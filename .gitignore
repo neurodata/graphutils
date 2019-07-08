@@ -5,3 +5,4 @@ graphutils.egg-info
 *.egg-info*
 _.py
 env
+*.ipynb
