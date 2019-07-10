@@ -126,7 +126,8 @@ class NdmgDirectory:
             has_graphs = filter_graph_files(
                 local_dir.iterdir(), return_bool=True, **kwargs
             )
-        # Check if has_graphs just got toggled.
+
+        # If has_graphs just got toggled, return all the graphs.
         if has_graphs:
             print(f"Local path {local_dir} found. Using that.")
             graphs = filter_graph_files(local_dir.iterdir(), **kwargs)
@@ -149,6 +150,8 @@ class NdmgDirectory:
             output.append(local)
 
         # return
+        if not output:
+            raise ValueError("No graphs found in the directory given.")
         return output
 
     def _get_name(self):
@@ -294,8 +297,12 @@ def url_to_ndmg_dir(urls):
     # appends each object
     return_value = {}
     for url in urls:
-        val = NdmgGraphs(url)
-        key = val.name
-        return_value[key] = val
+        try:
+            val = NdmgGraphs(url)
+            key = val.name
+            return_value[key] = val
+        except ValueError:
+            warnings.warn(f"Graphs for {key} not found. Skipping ...")
+            continue
 
     return return_value
