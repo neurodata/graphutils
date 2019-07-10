@@ -63,7 +63,7 @@ class NdmgDirectory:
         self.files = self._files(directory)
         self.name = self._get_name()
         if not len(self.files):
-            raise ValueError(f"No graphs found in {self.name}.")
+            raise ValueError(f"No graphs found in {str(self.directory)}.")
 
     def __repr__(self):
         return f"NdmgDirectory : {str(self.directory)}"

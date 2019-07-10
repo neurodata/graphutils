@@ -99,11 +99,9 @@ class NdmgStats(NdmgGraphs):
         name = namedtuple("name", ["X", "Y"])
         return name(X_name, Y_name)
 
-    def pass_to_ranks(self, on="all"):
+    def pass_to_ranks(self, graphs):
         """
-        pass-to-ranks method, to call on `self.graphs` or `self.X`.
-        When called, modifies one or both of these properties,
-        depending on parameters.
+        pass-to-ranks method, generally to call on `self.graphs` or `self.X`.
 
         Assigns ranks to all non-zero edges, settling ties using 
         the average. Ranks are then scaled by 
@@ -111,34 +109,23 @@ class NdmgStats(NdmgGraphs):
 
         Parameters
         ----------
-        on : str, "all", "X", or "graphs"
-            if all, call pass to ranks on `self.X` and `self.graphs`
+        graphs : np.ndarray
             if X, call pass to ranks on `self.X`
             if graphs, call pass to ranks on `self.graphs`.
         """
 
-        def PTR_functionality(graphs):
-            non_zeros = graphs[graphs != 0]
-            rank = rankdata(non_zeros)
-            normalizer = rank.shape[0]
-            rank = rank / (normalizer + 1)
-            graphs[graphs != 0] = rank
-            return graphs
+        if not isinstance(graphs, np.ndarray):
+            raise ValueError("input to pass_to_ranks must be a numpy array.")
 
-        # TODO : This should not change state of the object.
-        #        That was a bad idea.
-        if on == "X":
-            self.X = PTR_functionality(self.X)
-        elif on == "graphs":
-            self.graphs = PTR_functionality(self.X)
-        elif on == "all":
-            self.X = PTR_functionality(self.X)
-            self.graphs = PTR_functionality(self.graphs)
-        else:
-            raise ValueError("`on` must be all, X, or graphs.")
+        non_zeros = graphs[graphs != 0]
+        rank = rankdata(non_zeros)
+        normalizer = rank.shape[0]
+        rank = rank / (normalizer + 1)
+        graphs[graphs != 0] = rank
+        return graphs
 
     @replace_doc(discr_stat.__doc__)
-    def discriminability(self, PTR=True, on="all", **kwargs):
+    def discriminability(self, PTR=True, **kwargs):
         """
         Attach discriminability functionality to the object.
         See `discr_stat` for full documentation.
@@ -149,7 +136,7 @@ class NdmgStats(NdmgGraphs):
             Discriminability statistic.
         """
         if PTR:
-            self.pass_to_ranks(on=on)
+            return discr_stat(pass_to_ranks(self.X), self.Y, **kwargs)
         return discr_stat(self.X, self.Y, **kwargs)
 
 
