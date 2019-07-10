@@ -66,7 +66,7 @@ class NdmgDirectory:
             raise ValueError(f"No graphs found in {self.name}.")
 
     def __repr__(self):
-        return f"NdmgGraphs obj at {str(self.directory)}"
+        return f"NdmgDirectory : {str(self.directory)}"
 
     def _files(self, directory):
         """
@@ -215,6 +215,9 @@ class NdmgGraphs(NdmgDirectory):
         self.vertices = self._vertices()
         self.graphs = self._graphs()
         self.subjects = self._subjects()
+
+    def __repr__(self):
+        return f"NdmgGraphs : {str(self.directory)}"
 
     def _nx_graphs(self):
         """

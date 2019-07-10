@@ -38,7 +38,7 @@ class NdmgStats(NdmgGraphs):
         self.Y = self.subjects
 
     def __repr__(self):
-        return f"NdmgStats obj at {str(self.directory)}"
+        return f"NdmgStats : {str(self.directory)}"
 
     def _X(self):
         """
