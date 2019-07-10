@@ -14,7 +14,7 @@ from .utils import replace_doc, discr_stat
 
 
 class NdmgStats(NdmgGraphs):
-    """Compute discriminability from a ndmg directory.
+    """Compute statistics from a ndmg directory.
 
     Parameters
     ----------
@@ -114,6 +114,7 @@ class NdmgStats(NdmgGraphs):
             if graphs, call pass to ranks on `self.graphs`.
         """
 
+        graphs = np.copy(graphs)
         if not isinstance(graphs, np.ndarray):
             raise ValueError("input to pass_to_ranks must be a numpy array.")
 
@@ -136,7 +137,8 @@ class NdmgStats(NdmgGraphs):
             Discriminability statistic.
         """
         if PTR:
-            return discr_stat(pass_to_ranks(self.X), self.Y, **kwargs)
+            return discr_stat(self.pass_to_ranks(self.X), self.Y, **kwargs)
+
         return discr_stat(self.X, self.Y, **kwargs)
 
 
