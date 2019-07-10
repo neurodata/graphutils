@@ -55,7 +55,7 @@ class NdmgDirectory:
         if not isinstance(directory, (str, Path)):
             message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
             raise TypeError(message)
-        self.s3 = directory.startswith("s3:")
+        self.s3 = str(directory).startswith("s3:")
         self.directory = directory
         self.delimiter = delimiter
         self.atlas = atlas
@@ -266,44 +266,3 @@ class NdmgGraphs(NdmgDirectory):
         names = [re.findall(pattern, str(edgelist))[0] for edgelist in self.files]
         return np.array(names)
 
-
-def url_to_ndmg_dir(urls):
-    """
-    take a list of urls or filepaths,
-    get a dict of NdmgGraphs objects
-    
-    Parameters
-    ----------
-    urls : list
-        list of urls or filepaths. 
-        Each element should be of the same form as the input to a `NdmgGraphs` object.
-    
-    Returns
-    -------
-    dict
-        dict of {dataset:NdmgGraphs} objects.
-    
-    Raises
-    ------
-    TypeError
-        Raises error if input is not a list.
-    """
-
-    # checks for type
-    if isinstance(urls, str):
-        urls = [urls]
-    if not isinstance(urls, list):
-        raise TypeError("urls must be a list of URLs.")
-
-    # appends each object
-    return_value = {}
-    for url in urls:
-        try:
-            val = NdmgStats(url)
-            key = val.name
-            return_value[key] = val
-        except ValueError:
-            warnings.warn(f"Graphs for {url} not found. Skipping ...")
-            continue
-
-    return return_value
