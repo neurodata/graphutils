@@ -55,17 +55,15 @@ class NdmgDirectory:
         if not isinstance(directory, (str, Path)):
             message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
             raise TypeError(message)
-        self.s3 = False
+        self.s3 = directory.startswith("s3:")
         self.directory = directory
         self.delimiter = delimiter
-        if directory.startswith("s3:"):
-            self.s3 = True
         self.atlas = atlas
         self.suffix = suffix
         self.files = self._files(directory)
-        if not len(self.files):
-            warnings.warn("warning : no edgelists found.")
         self.name = self._get_name()
+        if not len(self.files):
+            raise ValueError(f"No graphs found in {self.name}.")
 
     def __repr__(self):
         return f"NdmgGraphs obj at {str(self.directory)}"
@@ -163,6 +161,9 @@ class NdmgDirectory:
         str
             name of dataset.
         """
+        if not self.s3:
+            return self.directory.name
+
         parts = Path(self.directory).parts
         dataset_index = parts.index(".ndmg_s3_dir") + 1
         return parts[dataset_index]
@@ -302,7 +303,7 @@ def url_to_ndmg_dir(urls):
             key = val.name
             return_value[key] = val
         except ValueError:
-            warnings.warn(f"Graphs for {key} not found. Skipping ...")
+            warnings.warn(f"Graphs for {url} not found. Skipping ...")
             continue
 
     return return_value
