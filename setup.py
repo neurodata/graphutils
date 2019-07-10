@@ -18,7 +18,7 @@ URL = "https://github.com/loftusa/scratchstats"
 EMAIL = "aloftus2@jhu.edu"
 AUTHOR = "Alex Loftus"
 REQUIRES_PYTHON = ">=3.7.0"
-VERSION = "0.0.0.1"
+VERSION = "0.0.1"
 
 # What packages are required for this module to be executed?
 REQUIRED = ["numpy", "networkx", "graspy"]
