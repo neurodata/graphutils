@@ -46,7 +46,7 @@ class NdmgDirectory:
     files : list, sorted
         List of path objects corresponding to each edgelist.
     name : str
-        Base name of directory.
+        name of dataset.
     to_directory : func
         Send all graph files to a directory of your choosing
     """
@@ -56,16 +56,16 @@ class NdmgDirectory:
             message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
             raise TypeError(message)
         self.s3 = False
-        self.directory = Path(directory)
+        self.directory = directory
         self.delimiter = delimiter
-        if str(directory).startswith("s3:"):
+        if directory.startswith("s3:"):
             self.s3 = True
         self.atlas = atlas
         self.suffix = suffix
         self.files = self._files(directory)
         if not len(self.files):
             warnings.warn("warning : no edgelists found.")
-        self.name = self.directory.parent.name
+        self.name = self._get_name()
 
     def __repr__(self):
         return f"NdmgGraphs obj at {str(self.directory)}"
@@ -94,6 +94,7 @@ class NdmgDirectory:
             output = self._get_s3(directory, atlas=self.atlas, suffix=self.suffix)
 
         else:
+            self.directory = Path(self.directory)
             for dirname, _, files in os.walk(directory):
                 file_ends = list(
                     filter_graph_files(files, suffix=self.suffix, atlas=self.atlas)
@@ -111,8 +112,7 @@ class NdmgDirectory:
         # parse bucket and path from self.directory
         # TODO: this breaks if the s3 directory structure changes
         bucket, prefix = parse_path(path)
-        dataset = prefix.split("/")[0]
-        local_dir = Path.home() / Path(f".ndmg_s3_dir/{dataset}")
+        local_dir = Path.home() / Path(f".ndmg_s3_dir/{prefix}")
         if self.atlas:
             local_dir = local_dir / Path(self.atlas)
         else:
@@ -148,11 +148,21 @@ class NdmgDirectory:
             s3_download_graph(bucket, obj, local)
             output.append(local)
 
-        # update self.directory
-        self.directory = local_dir
-
         # return
         return output
+
+    def _get_name(self):
+        """
+        return directory beneath ".ndmg_s3_dir".
+        
+        Returns
+        -------
+        str
+            name of dataset.
+        """
+        parts = Path(self.directory).parts
+        dataset_index = parts.index(".ndmg_s3_dir") + 1
+        return parts[dataset_index]
 
     def to_directory(self, dst=None):
         """

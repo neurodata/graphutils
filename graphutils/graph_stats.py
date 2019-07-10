@@ -68,7 +68,7 @@ class NdmgStats(NdmgGraphs):
         else:
             raise ValueError("Dimensionality of input must be 3.")
 
-    def save_X_and_Y(self, output_directory="cwd"):
+    def save_X_and_Y(self, output_directory="cwd", output_name=""):
         """
         Save `self.X` and `self.subjects` into an output directory.
 
@@ -82,13 +82,16 @@ class NdmgStats(NdmgGraphs):
         namedtuple with str
             namedtuple of `name.X, name.Y`. Paths to X and Y.
         """
+        if not output_name:
+            output_name = self.name
+
         if output_directory == "cwd":
             output_directory = Path.cwd()
         p = Path(output_directory)
         p.mkdir(parents=True, exist_ok=True)
 
-        X_name = f"{str(p)}/{self.name}_X.csv"
-        Y_name = f"{str(p)}/{self.name}_Y.csv"
+        X_name = f"{str(p)}/{output_name}_X.csv"
+        Y_name = f"{str(p)}/{output_name}_Y.csv"
 
         np.savetxt(X_name, self.X, fmt="%f", delimiter=",")
         np.savetxt(Y_name, self.subjects, fmt="%s")
