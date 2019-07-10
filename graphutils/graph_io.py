@@ -299,7 +299,7 @@ def url_to_ndmg_dir(urls):
     return_value = {}
     for url in urls:
         try:
-            val = NdmgGraphs(url)
+            val = NdmgStats(url)
             key = val.name
             return_value[key] = val
         except ValueError:

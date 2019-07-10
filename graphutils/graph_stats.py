@@ -152,3 +152,44 @@ class NdmgStats(NdmgGraphs):
             self.pass_to_ranks(on=on)
         return discr_stat(self.X, self.Y, **kwargs)
 
+
+def url_to_ndmg_dir(urls):
+    """
+    take a list of urls or filepaths,
+    get a dict of NdmgGraphs objects
+    
+    Parameters
+    ----------
+    urls : list
+        list of urls or filepaths. 
+        Each element should be of the same form as the input to a `NdmgGraphs` object.
+    
+    Returns
+    -------
+    dict
+        dict of {dataset:NdmgGraphs} objects.
+    
+    Raises
+    ------
+    TypeError
+        Raises error if input is not a list.
+    """
+
+    # checks for type
+    if isinstance(urls, str):
+        urls = [urls]
+    if not isinstance(urls, list):
+        raise TypeError("urls must be a list of URLs.")
+
+    # appends each object
+    return_value = {}
+    for url in urls:
+        try:
+            val = NdmgStats(url)
+            key = val.name
+            return_value[key] = val
+        except ValueError:
+            warnings.warn(f"Graphs for {url} not found. Skipping ...")
+            continue
+
+    return return_value
