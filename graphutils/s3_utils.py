@@ -35,6 +35,7 @@ def get_credentials():
         raise AttributeError("No AWS credentials found.")
     return (ACCESS, SECRET)
 
+
 def parse_path(s3_datapath):
     """
     Return bucket and prefix from full s3 path.
@@ -50,15 +51,21 @@ def parse_path(s3_datapath):
     tuple
         bucket and prefix.
     """
-    bucket_path = str(s3_datapath).split('//')[1]
-    parts = bucket_path.split('/')
+    bucket_path = str(s3_datapath).split("//")[1]
+    parts = bucket_path.split("/")
     bucket = parts[0]
-    prefix = '/'.join(parts[1:4])
+    prefix = "/".join(parts[1:4])
     return bucket, prefix
 
-def s3_client():
+
+def s3_client(service="s3"):
     """
     create an s3 client.
+
+    Parameters
+    ----------
+    service : str
+        Type of service.
     
     Returns
     -------
@@ -67,9 +74,10 @@ def s3_client():
     """
 
     ACCESS, SECRET = get_credentials()
-    return boto3.client('s3', aws_access_key_id=ACCESS, aws_secret_access_key=SECRET)
+    return boto3.client(service, aws_access_key_id=ACCESS, aws_secret_access_key=SECRET)
 
-def get_matching_s3_objects(bucket, prefix='', suffix=''):
+
+def get_matching_s3_objects(bucket, prefix="", suffix=""):
     """
     Generate objects in an S3 bucket.
     
@@ -83,12 +91,12 @@ def get_matching_s3_objects(bucket, prefix='', suffix=''):
         Only fetch objects whose keys end with this suffix, by default ''
     """
     s3 = s3_client()
-    kwargs = {'Bucket': bucket}
+    kwargs = {"Bucket": bucket}
 
     # If the prefix is a single string (not a tuple of strings), we can
     # do the filtering directly in the S3 API.
     if isinstance(prefix, str):
-        kwargs['Prefix'] = prefix
+        kwargs["Prefix"] = prefix
 
     while True:
 
@@ -97,13 +105,13 @@ def get_matching_s3_objects(bucket, prefix='', suffix=''):
         resp = s3.list_objects_v2(**kwargs)
 
         try:
-            contents = resp['Contents']
+            contents = resp["Contents"]
         except KeyError:
             print("No contents found.")
             return
 
         for obj in contents:
-            key = obj['Key']
+            key = obj["Key"]
             if key.startswith(prefix) and key.endswith(suffix):
                 yield key
 
@@ -111,9 +119,10 @@ def get_matching_s3_objects(bucket, prefix='', suffix=''):
         # Pass the continuation token into the next response, until we
         # reach the final page (when this field is missing).
         try:
-            kwargs['ContinuationToken'] = resp['NextContinuationToken']
+            kwargs["ContinuationToken"] = resp["NextContinuationToken"]
         except KeyError:
             break
+
 
 def s3_download_graph(bucket, prefix, local):
     """
