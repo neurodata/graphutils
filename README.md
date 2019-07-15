@@ -1,3 +1,5 @@
+https://travis-ci.org/neurodata/graphutils.svg?branch=master
+
 Collection of utility functions for working with folders of edgelists;
 Generally outputs of `ndmg`.
 
