@@ -2,14 +2,15 @@ dist: xenial
 language: python
 python:
   - "3.7"
+  - "3.6"
 
 branches:
   only:
     - master
 
 before_install:
-  - echo $(TRAVIS_PULL_REQUEST_BRANCH)
-  - echo $(TRAVIS_BRANCH)
+  - echo $TRAVIS_PULL_REQUEST_BRANCH
+  - echo $TRAVIS_BRANCH
 
 install:
   - pip install -r requirements.txt
