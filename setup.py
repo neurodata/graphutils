@@ -17,7 +17,7 @@ DESCRIPTION = "Utilities to make working with edgelists easier"
 URL = "https://github.com/neurodata/graphutils"
 EMAIL = "aloftus2@jhu.edu"
 AUTHOR = "Alex Loftus"
-REQUIRES_PYTHON = ">=3.7.0"
+REQUIRES_PYTHON = ">=3.6.0"
 VERSION = "0.1.2"
 
 # What packages are required for this module to be executed?
