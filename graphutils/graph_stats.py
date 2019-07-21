@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 from scipy.stats import rankdata
-from graspy.utils import pass_to_ranks as PTR
+from graspy.utils import pass_to_ranks
 
 from .graph_io import NdmgGraphs
 from .utils import replace_doc, discr_stat
@@ -40,7 +40,7 @@ class NdmgStats(NdmgGraphs):
     def __repr__(self):
         return f"NdmgStats : {str(self.directory)}"
 
-    def _X(self):
+    def _X(self, graphs=None):
         """
         this will be a single matrix,
         created by vectorizing each array in `self.graphs`,
@@ -50,21 +50,20 @@ class NdmgStats(NdmgGraphs):
         ----------
         graphs : None or np.ndarray
             if None, graphs will be `self.graphs`.
-            if not None, 
-        PTR : bool, default False
-            if True, call pass_to_ranks on X.
 
         Returns
         -------
         X : np.ndarray, shape (n, v*v), 2D
             numpy array, created by vectorizing each adjacency matrix and stacking.
         """
-        if self.graphs.ndim == 3:
-            n, v1, v2 = np.shape(self.graphs)
-            return np.reshape(self.graphs, (n, v1 * v2))
+        if graphs is None:
+            graphs = self.graphs
+        if graphs.ndim == 3:
+            n, v1, v2 = np.shape(graphs)
+            return np.reshape(graphs, (n, v1 * v2))
         elif len(self.files) == 1:
             warnings.warn("Only one graph in directory.")
-            return self.graphs
+            return graphs
         else:
             raise ValueError("Dimensionality of input must be 3.")
 
@@ -99,31 +98,31 @@ class NdmgStats(NdmgGraphs):
         name = namedtuple("name", ["X", "Y"])
         return name(X_name, Y_name)
 
-    def pass_to_ranks(self, graphs):
-        """
-        pass-to-ranks method, generally to call on `self.graphs` or `self.X`.
+    # @replace_doc(pass_to_ranks.__doc__)
+    # def pass_to_ranks(self, graph):
+    #     """
+    #     pass-to-ranks method, generally to call on `self.graphs` or `self.X`.
 
-        Assigns ranks to all non-zero edges, settling ties using 
-        the average. Ranks are then scaled by 
-        :math:`\frac{rank(\text{non-zero edges})}{\text{total non-zero edges} + 1}`.
+    #     Assigns ranks to all non-zero edges, settling ties using 
+    #     the average. Ranks are then scaled by 
+    #     :math:`\frac{rank(\text{non-zero edges})}{\text{total non-zero edges} + 1}`.
 
-        Parameters
-        ----------
-        graphs : np.ndarray
-            if X, call pass to ranks on `self.X`
-            if graphs, call pass to ranks on `self.graphs`.
-        """
+    #     Parameters
+    #     ----------
+    #     graphs : np.ndarray
+    #         if X, call pass to ranks on `self.X`
+    #         if graphs, call pass to ranks on `self.graphs`.
+    #     """
 
-        graphs = np.copy(graphs)
-        if not isinstance(graphs, np.ndarray):
-            raise ValueError("input to pass_to_ranks must be a numpy array.")
+    #     graphs = np.copy(graph)
+    #     if not isinstance(graph, np.ndarray):
+    #         raise ValueError("input to pass_to_ranks must be a numpy array.")
 
-        non_zeros = graphs[graphs != 0]
-        rank = rankdata(non_zeros)
-        normalizer = rank.shape[0]
-        rank = rank / (normalizer + 1)
-        graphs[graphs != 0] = rank
-        return graphs
+    #     # TODO : broken. Needs to be called on an nxn array.
+    #     # if input is a single graph, just call PTR.
+    #     # if input is a 3D array, call PTR along subject columns.
+    #     # if input is an nx(d*d) array, reshape each row, call PTR on it, then un-reshape, and return the PTRd nx(d*d) array.
+    #     return pass_to_ranks(graph)
 
     @replace_doc(discr_stat.__doc__)
     def discriminability(self, PTR=True, **kwargs):
@@ -137,7 +136,10 @@ class NdmgStats(NdmgGraphs):
             Discriminability statistic.
         """
         if PTR:
-            return discr_stat(self.pass_to_ranks(self.X), self.Y, **kwargs)
+            graphs = np.copy(self.graphs)
+            graphs = np.array([pass_to_ranks(graph) for graph in graphs])
+            X = self._X(graphs)
+            return discr_stat(X, self.Y, **kwargs)
 
         return discr_stat(self.X, self.Y, **kwargs)
 

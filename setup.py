@@ -14,11 +14,11 @@ from setuptools import find_packages, setup, Command
 # Package meta-data.
 NAME = "graphutils"
 DESCRIPTION = "Utilities to make working with edgelists easier"
-URL = "https://github.com/loftusa/scratchstats"
+URL = "https://github.com/neurodata/graphutils"
 EMAIL = "aloftus2@jhu.edu"
 AUTHOR = "Alex Loftus"
 REQUIRES_PYTHON = ">=3.7.0"
-VERSION = "0.0.1"
+VERSION = "0.1.2"
 
 # What packages are required for this module to be executed?
 REQUIRED = ["numpy", "networkx", "graspy"]
