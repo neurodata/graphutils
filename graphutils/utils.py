@@ -1,5 +1,6 @@
 #%%
 from pathlib import Path
+from math import sqrt, ceil
 
 from sklearn.metrics import euclidean_distances
 from sklearn.utils import check_X_y
@@ -181,3 +182,18 @@ def replace_doc(value):
 
     return _doc
 
+
+def nearest_square(num):
+    """ 
+    Return the smallest square number greater than `num`.
+    For use in visualize_biggraph(), to make the correct number of axes.
+    
+    Parameters:
+    -----------
+        num: int
+
+    Returns: 
+    --------
+        int. Square number.
+    """
+    return (ceil(sqrt(num)) ** 2) 

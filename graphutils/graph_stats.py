@@ -4,13 +4,17 @@
 import warnings
 from collections import namedtuple
 from pathlib import Path
+import re
+from math import sqrt
 
 import numpy as np
 from scipy.stats import rankdata
+from matplotlib import pyplot as plt
 from graspy.utils import pass_to_ranks
+from graspy.plot import heatmap
 
 from .graph_io import NdmgGraphs
-from .utils import replace_doc, discr_stat
+from .utils import replace_doc, discr_stat, nearest_square
 
 
 class NdmgStats(NdmgGraphs):
@@ -98,32 +102,6 @@ class NdmgStats(NdmgGraphs):
         name = namedtuple("name", ["X", "Y"])
         return name(X_name, Y_name)
 
-    # @replace_doc(pass_to_ranks.__doc__)
-    # def pass_to_ranks(self, graph):
-    #     """
-    #     pass-to-ranks method, generally to call on `self.graphs` or `self.X`.
-
-    #     Assigns ranks to all non-zero edges, settling ties using 
-    #     the average. Ranks are then scaled by 
-    #     :math:`\frac{rank(\text{non-zero edges})}{\text{total non-zero edges} + 1}`.
-
-    #     Parameters
-    #     ----------
-    #     graphs : np.ndarray
-    #         if X, call pass to ranks on `self.X`
-    #         if graphs, call pass to ranks on `self.graphs`.
-    #     """
-
-    #     graphs = np.copy(graph)
-    #     if not isinstance(graph, np.ndarray):
-    #         raise ValueError("input to pass_to_ranks must be a numpy array.")
-
-    #     # TODO : broken. Needs to be called on an nxn array.
-    #     # if input is a single graph, just call PTR.
-    #     # if input is a 3D array, call PTR along subject columns.
-    #     # if input is an nx(d*d) array, reshape each row, call PTR on it, then un-reshape, and return the PTRd nx(d*d) array.
-    #     return pass_to_ranks(graph)
-
     @replace_doc(discr_stat.__doc__)
     def discriminability(self, PTR=True, **kwargs):
         """
@@ -142,6 +120,29 @@ class NdmgStats(NdmgGraphs):
             return discr_stat(X, self.Y, **kwargs)
 
         return discr_stat(self.X, self.Y, **kwargs)
+    
+    def visualize(self):
+
+        # graph constant variables
+        n = len(self.files)
+        rgx = re.compile(r"(sub-)([a-zA-Z0-9]*(_ses-)([a-zA-Z0-9]*))")
+        sq = nearest_square(n)
+        rows = int(sqrt(sq))
+        cols = int(sqrt(sq))
+        
+        # loop through axis, add graspy heatmap for each graph
+        fig, ax = plt.subplots(rows, cols, figsize=(rows * 2.5, cols * 2.5))
+        for i, axi in enumerate(ax.flat):
+            if i <= n:
+                graph = self.graphs[i]
+                sub = self.subjects[i]
+                axi.imshow(heatmap(graph))
+                axi.set_title(sub)
+            else:
+                break
+
+        fig.subplots_adjust(hspace=rows * 0.05)
+        plt.show()
 
 
 def url_to_ndmg_dir(urls):
