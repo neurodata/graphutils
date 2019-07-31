@@ -120,29 +120,60 @@ class NdmgStats(NdmgGraphs):
             return discr_stat(X, self.Y, **kwargs)
 
         return discr_stat(self.X, self.Y, **kwargs)
-    
-    def visualize(self):
 
-        # graph constant variables
-        n = len(self.files)
-        rgx = re.compile(r"(sub-)([a-zA-Z0-9]*(_ses-)([a-zA-Z0-9]*))")
-        sq = nearest_square(n)
-        rows = int(sqrt(sq))
-        cols = int(sqrt(sq))
+
+    def visualize(self, i, savedir=""):
+        """
+        Visualize the ith graph of self.graphs, passed-to-ranks.
         
-        # loop through axis, add graspy heatmap for each graph
-        fig, ax = plt.subplots(rows, cols, figsize=(rows * 2.5, cols * 2.5))
-        for i, axi in enumerate(ax.flat):
-            if i <= n:
-                graph = self.graphs[i]
-                sub = self.subjects[i]
-                axi.imshow(heatmap(graph))
-                axi.set_title(sub)
-            else:
-                break
+        Parameters
+        ----------
+        i : int
+            Graph to visualize.
+        savedir : str, optional
+            Directory to save graph into.
+            If left empty, do not save.
+        """
 
-        fig.subplots_adjust(hspace=rows * 0.05)
-        plt.show()
+        nmax = np.max(self.graphs)
+
+        if isinstance(i, int):
+            graph = pass_to_ranks(self.graphs[i])
+            sub = self.subjects[i]
+            sesh = ""  # TODO
+        
+        elif isinstance(i, np.ndarray):
+            graph = pass_to_ranks(i)
+            sub = ""
+            sesh = ""
+        
+        else:
+            raise TypeError("Passed value must be integer or np.ndarray.")
+        
+
+        viz = heatmap(graph, title = f"sub-{sub}_session-{sesh}", xticklabels=True, yticklabels=True, vmin=0, vmax=1)
+
+        # set color of title
+        viz.set_title(viz.get_title(), color="black")
+
+        # set color of colorbar ticks
+        viz.collections[0].colorbar.ax.yaxis.set_tick_params(color="black")
+
+        # set font size and color of heatmap ticks
+        for item in (viz.get_xticklabels() + viz.get_yticklabels()):
+            item.set_color("black")
+            item.set_fontsize(7)
+
+        
+        if savedir:
+            p = Path(savedir).resolve()
+            if not p.is_dir():
+                p.mkdir()
+            plt.savefig(p / f"sub-{sub}_sesh-{sesh}.png", facecolor="white", bbox_inches="tight", dpi=300)
+        else:
+            plt.show()
+
+        plt.cla()
 
 
 def url_to_ndmg_dir(urls):
