@@ -214,7 +214,8 @@ class NdmgGraphs(NdmgDirectory):
         super().__init__(*args, **kwargs)
         self.vertices = self._vertices()
         self.graphs = self._graphs()
-        self.subjects = self._subjects()
+        self.subjects = self._parse()[0]
+        self.sessions = self._parse()[0]
 
     def __repr__(self):
         return f"NdmgGraphs : {str(self.directory)}"
@@ -256,7 +257,7 @@ class NdmgGraphs(NdmgDirectory):
             list_of_arrays = [list_of_arrays]
         return np.atleast_3d(list_of_arrays)
 
-    def _subjects(self):
+    def _parse(self):
         """
         Get subject IDs
         
@@ -265,7 +266,7 @@ class NdmgGraphs(NdmgDirectory):
         out : np.ndarray 
             Array of strings. Each element is a subject ID.
         """
-        pattern = r"(?<=sub-)(\w*)(?=_ses)"
-        names = [re.findall(pattern, str(edgelist))[0] for edgelist in self.files]
-        return np.array(names)
-
+        pattern = r"(?<=sub-|ses-)(\w*)(?=_ses|_dwi)"
+        subjects = [re.findall(pattern, str(edgelist))[0] for edgelist in self.files]
+        sessions = [re.findall(pattern, str(edgelist))[1] for edgelist in self.files]
+        return np.array(subjects), np.array(sessions)

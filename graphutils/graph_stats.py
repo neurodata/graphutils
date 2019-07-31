@@ -4,13 +4,17 @@
 import warnings
 from collections import namedtuple
 from pathlib import Path
+import re
+from math import sqrt
 
 import numpy as np
 from scipy.stats import rankdata
+from matplotlib import pyplot as plt
 from graspy.utils import pass_to_ranks
+from graspy.plot import heatmap
 
 from .graph_io import NdmgGraphs
-from .utils import replace_doc, discr_stat
+from .utils import replace_doc, discr_stat, nearest_square
 
 
 class NdmgStats(NdmgGraphs):
@@ -98,32 +102,6 @@ class NdmgStats(NdmgGraphs):
         name = namedtuple("name", ["X", "Y"])
         return name(X_name, Y_name)
 
-    # @replace_doc(pass_to_ranks.__doc__)
-    # def pass_to_ranks(self, graph):
-    #     """
-    #     pass-to-ranks method, generally to call on `self.graphs` or `self.X`.
-
-    #     Assigns ranks to all non-zero edges, settling ties using 
-    #     the average. Ranks are then scaled by 
-    #     :math:`\frac{rank(\text{non-zero edges})}{\text{total non-zero edges} + 1}`.
-
-    #     Parameters
-    #     ----------
-    #     graphs : np.ndarray
-    #         if X, call pass to ranks on `self.X`
-    #         if graphs, call pass to ranks on `self.graphs`.
-    #     """
-
-    #     graphs = np.copy(graph)
-    #     if not isinstance(graph, np.ndarray):
-    #         raise ValueError("input to pass_to_ranks must be a numpy array.")
-
-    #     # TODO : broken. Needs to be called on an nxn array.
-    #     # if input is a single graph, just call PTR.
-    #     # if input is a 3D array, call PTR along subject columns.
-    #     # if input is an nx(d*d) array, reshape each row, call PTR on it, then un-reshape, and return the PTRd nx(d*d) array.
-    #     return pass_to_ranks(graph)
-
     @replace_doc(discr_stat.__doc__)
     def discriminability(self, PTR=True, **kwargs):
         """
@@ -142,6 +120,60 @@ class NdmgStats(NdmgGraphs):
             return discr_stat(X, self.Y, **kwargs)
 
         return discr_stat(self.X, self.Y, **kwargs)
+
+
+    def visualize(self, i, savedir=""):
+        """
+        Visualize the ith graph of self.graphs, passed-to-ranks.
+        
+        Parameters
+        ----------
+        i : int
+            Graph to visualize.
+        savedir : str, optional
+            Directory to save graph into.
+            If left empty, do not save.
+        """
+
+        nmax = np.max(self.graphs)
+
+        if isinstance(i, int):
+            graph = pass_to_ranks(self.graphs[i])
+            sub = self.subjects[i]
+            sesh = ""  # TODO
+        
+        elif isinstance(i, np.ndarray):
+            graph = pass_to_ranks(i)
+            sub = ""
+            sesh = ""
+        
+        else:
+            raise TypeError("Passed value must be integer or np.ndarray.")
+        
+
+        viz = heatmap(graph, title = f"sub-{sub}_session-{sesh}", xticklabels=True, yticklabels=True, vmin=0, vmax=1)
+
+        # set color of title
+        viz.set_title(viz.get_title(), color="black")
+
+        # set color of colorbar ticks
+        viz.collections[0].colorbar.ax.yaxis.set_tick_params(color="black")
+
+        # set font size and color of heatmap ticks
+        for item in (viz.get_xticklabels() + viz.get_yticklabels()):
+            item.set_color("black")
+            item.set_fontsize(7)
+
+        
+        if savedir:
+            p = Path(savedir).resolve()
+            if not p.is_dir():
+                p.mkdir()
+            plt.savefig(p / f"sub-{sub}_sesh-{sesh}.png", facecolor="white", bbox_inches="tight", dpi=300)
+        else:
+            plt.show()
+
+        plt.cla()
 
 
 def url_to_ndmg_dir(urls):
