@@ -21,7 +21,7 @@ REQUIRES_PYTHON = ">=3.6.0"
 VERSION = "0.1.2"
 
 # What packages are required for this module to be executed?
-REQUIRED = ["numpy", "networkx", "graspy"]
+REQUIRED = ["numpy", "networkx", "graspy", "boto3"]
 
 # What packages are optional?
 EXTRAS = {
