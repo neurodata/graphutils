@@ -51,7 +51,7 @@ class NdmgDirectory:
         Send all graph files to a directory of your choosing
     """
 
-    def __init__(self, directory, atlas="", suffix="ssv", delimiter=" "):
+    def __init__(self, directory, atlas="", suffix="csv", delimiter=" "):
         if not isinstance(directory, (str, Path)):
             message = f"Directory must be type str or Path. Instead, it is type {type(directory)}."
             raise TypeError(message)
@@ -215,7 +215,7 @@ class NdmgGraphs(NdmgDirectory):
         self.vertices = self._vertices()
         self.graphs = self._graphs()
         self.subjects = self._parse()[0]
-        self.sessions = self._parse()[0]
+        self.sessions = self._parse()[1]
 
     def __repr__(self):
         return f"NdmgGraphs : {str(self.directory)}"
@@ -229,9 +229,10 @@ class NdmgGraphs(NdmgDirectory):
         nx_graphs : List[nx.Graph]
             List of networkX graphs corresponding to subjects.
         """
+        fils = [str(name) for name in self.files]
         nx_graphs = [
             nx.read_weighted_edgelist(f, nodetype=int, delimiter=self.delimiter)
-            for f in self.files
+            for f in fils
         ]
         return nx_graphs
 
