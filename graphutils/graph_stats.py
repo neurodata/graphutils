@@ -44,6 +44,9 @@ class NdmgStats(NdmgGraphs):
     def __repr__(self):
         return f"NdmgStats : {str(self.directory)}"
 
+    def __len__(self):
+        return len(self.files)
+
     def _X(self, graphs=None):
         """
         this will be a single matrix,
@@ -177,7 +180,6 @@ class NdmgStats(NdmgGraphs):
 
         return viz
 
-
     def visualize(self, i, savedir=""):
         """
         Visualize the ith graph of self.graphs, passed-to-ranks.
@@ -197,17 +199,23 @@ class NdmgStats(NdmgGraphs):
             graph = pass_to_ranks(self.graphs[i])
             sub = self.subjects[i]
             sesh = ""  # TODO
-        
+
         elif isinstance(i, np.ndarray):
             graph = pass_to_ranks(i)
             sub = ""
             sesh = ""
-        
+
         else:
             raise TypeError("Passed value must be integer or np.ndarray.")
-        
 
-        viz = heatmap(graph, title = f"sub-{sub}_session-{sesh}", xticklabels=True, yticklabels=True, vmin=0, vmax=1)
+        viz = heatmap(
+            graph,
+            title=f"sub-{sub}_session-{sesh}",
+            xticklabels=True,
+            yticklabels=True,
+            vmin=0,
+            vmax=1,
+        )
 
         # set color of title
         viz.set_title(viz.get_title(), color="black")
@@ -216,16 +224,20 @@ class NdmgStats(NdmgGraphs):
         viz.collections[0].colorbar.ax.yaxis.set_tick_params(color="black")
 
         # set font size and color of heatmap ticks
-        for item in (viz.get_xticklabels() + viz.get_yticklabels()):
+        for item in viz.get_xticklabels() + viz.get_yticklabels():
             item.set_color("black")
             item.set_fontsize(7)
 
-        
         if savedir:
             p = Path(savedir).resolve()
             if not p.is_dir():
                 p.mkdir()
-            plt.savefig(p / f"sub-{sub}_sesh-{sesh}.png", facecolor="white", bbox_inches="tight", dpi=300)
+            plt.savefig(
+                p / f"sub-{sub}_sesh-{sesh}.png",
+                facecolor="white",
+                bbox_inches="tight",
+                dpi=300,
+            )
         else:
             plt.show()
 

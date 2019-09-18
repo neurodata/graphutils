@@ -205,14 +205,20 @@ class NdmgGraphs(NdmgDirectory):
         Volumetric numpy array, n vxv adjacency matrices corresponding to each edgelist.
         graphs[0, :, :] corresponds to files[0].
     subjects : np.ndarray, shape n, 1D
-        subject IDs, sorted set of all subject IDs in `dir`.
-        Y[0] corresponds to files[0].
+        subject IDs, sorted array of all subject IDs in `dir`.
+        subjects[0] corresponds to files[0].
+    sessions : np.ndarray, shape n, 1D
+        session IDs, sorted array of all sessions.
+        sessions[0] corresponds to files[0].
+
     """
 
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
+        self.nx_graphs = self._nx_graphs()
         self.vertices = self._vertices()
+        self.sort_nx_graphs()  # get vertices, sort nx graphs
         self.graphs = self._graphs()
         self.subjects = self._parse()[0]
         self.sessions = self._parse()[1]
@@ -229,16 +235,23 @@ class NdmgGraphs(NdmgDirectory):
         nx_graphs : List[nx.Graph]
             List of networkX graphs corresponding to subjects.
         """
-        fils = [str(name) for name in self.files]
+        files_ = [str(name) for name in self.files]
         nx_graphs = [
             nx.read_weighted_edgelist(f, nodetype=int, delimiter=self.delimiter)
-            for f in fils
+            for f in files_
         ]
         return nx_graphs
 
     def _vertices(self):
-        nx_graphs = self._nx_graphs()
-        return np.sort(reduce(np.union1d, [G.nodes for G in nx_graphs]))
+        """
+        Calculate the unioned number of nodes across all graph files.
+        
+        Returns
+        -------
+        np.array
+            Sorted array of unioned nodes.
+        """
+        return np.sort(reduce(np.union1d, [G.nodes for G in self.nx_graphs]))
 
     def _graphs(self):
         """
@@ -271,3 +284,15 @@ class NdmgGraphs(NdmgDirectory):
         subjects = [re.findall(pattern, str(edgelist))[0] for edgelist in self.files]
         sessions = [re.findall(pattern, str(edgelist))[1] for edgelist in self.files]
         return np.array(subjects), np.array(sessions)
+
+    def sort_nx_graphs(self):
+        """
+        Ensure that all networkx graphs have the same number of nodes.
+
+        Returns
+        -------
+        None
+        """
+        for graph in self.nx_graphs:
+            graph.add_nodes_from(self.vertices)
+
