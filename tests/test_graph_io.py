@@ -76,7 +76,7 @@ class TestNdmgGraphs:
             assert new.name == old.name
 
     def test_nx_graphs_all_unioned(self, ND):
-        unioned = [tuple(sorted(graph.nodes)) for graph in self.nx_graphs]
+        unioned = [tuple(sorted(graph.nodes)) for graph in ND.nx_graphs]
         assert len(set(unioned)) == 1
 
     # TODO : test to check atlas pulls from the right thing.
